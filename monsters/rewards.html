@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>獎勵小屋｜小怪獸挑戰王</title>
+  <style>
+    body {
+      background: #FFFDF6;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    h1 {
+      color: #C68A56;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    /* 導覽列樣式 */
+    .navbar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      justify-content: center;
+    }
+    .nav-btn {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid #C68A56;
+      background: #FFF4C8;
+      font-size: 14px;
+      text-decoration: none;
+      color: #5A3B24;
+    }
+    .nav-btn.active {
+      background: #C68A56;
+      color: white;
+      font-weight: bold;
+    }
+
+    #points-box {
+      margin: 20px 0;
+      padding: 16px;
+      background: #FFF4C8;
+      border-radius: 12px;
+      border: 2px solid #C68A56;
+    }
+    .reward-card {
+      background: #FFFFFF;
+      border: 2px solid #C68A56;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .reward-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    .reward-points {
+      margin-bottom: 8px;
+    }
+    button {
+      padding: 8px 14px;
+      background: #FFE680;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    button:disabled {
+      background: #DDD;
+      cursor: not-allowed;
+    }
+    .status {
+      font-size: 13px;
+      color: #666;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>獎勵小屋 🎁</h1>
+
+<!-- 導覽列：這一頁是「獎勵小屋」，所以這裡 active -->
+<div class="navbar">
+  <a href="/dashboard.html" class="nav-btn">今日任務</a>
+  <a href="/rewards.html" class="nav-btn active">獎勵小屋</a>
+</div>
+
+<div id="points-box">
+  <strong>目前點數：</strong>
+  <span id="points">140</span> 分
+  <div style="font-size: 14px; color: #666; margin-top: 4px;">
+    （之後會改成從後端抓真正的點數，現在先用假資料練習）
+  </div>
+</div>
+
+<div id="rewards"></div>
+
+<script>
+  // ---- 假資料：之後會從後端/資料庫抓 ----
+  let currentPoints = 140; // 先假設有 140 分，可以自由改
+  const rewards = [
+    { id: 1, name: '冰淇淋一份', need: 300 },
+    { id: 2, name: 'Switch 30 分鐘', need: 350 },
+    { id: 3, name: '睡前故事指定選一本', need: 100 },
+    { id: 4, name: '週末點心', need: 250 },
+    { id: 5, name: '爸爸陪玩 10 分鐘', need: 100 },
+    { id: 6, name: '看電視 10 分鐘', need: 200 },
+    { id: 7, name: '假日去公園玩', need: 300 },
+    { id: 8, name: '冒險驚喜小禮物', need: 250 },
+  ];
+
+  function renderPoints() {
+    document.getElementById('points').textContent = currentPoints;
+  }
+
+  function renderRewards() {
+    const container = document.getElementById('rewards');
+    container.innerHTML = '';
+
+    rewards.forEach(r => {
+      const canRedeem = currentPoints >= r.need;
+      const diff = r.need - currentPoints;
+
+      const statusText = canRedeem
+        ? '可以兌換 🎉'
+        : `還差 ${diff} 分`;
+
+      const html = `
+        <div class="reward-card">
+          <div class="reward-title">${r.name}</div>
+          <div class="reward-points">需要點數：${r.need} 分</div>
+          <button onclick="redeemReward(${r.id})" ${canRedeem ? '' : 'disabled'}>
+            ${canRedeem ? '兌換' : '暫時無法兌換'}
+          </button>
+          <div class="status">${statusText}</div>
+        </div>
+      `;
+      container.innerHTML += html;
+    });
+  }
+
+  function redeemReward(id) {
+    const r = rewards.find(x => x.id === id);
+    if (!r) return;
+
+    if (currentPoints < r.need) {
+      alert(`點數還不夠，還差 ${r.need - currentPoints} 分喔！`);
+      return;
+    }
+
+    const confirmRedeem = confirm(
+      `確定要兌換「${r.name}」嗎？\n這會花費 ${r.need} 分。`
+    );
+    if (!confirmRedeem) return;
+
+    // 扣點數（之後這裡要改成呼叫後端 API）
+    currentPoints -= r.need;
+    renderPoints();
+    renderRewards();
+
+    alert(`已兌換「${r.name}」！\n記得真的給小朋友這個獎勵喔 😊`);
+  }
+
+  // 初始化畫面
+  renderPoints();
+  renderRewards();
+</script>
+
+</body>
+</html>

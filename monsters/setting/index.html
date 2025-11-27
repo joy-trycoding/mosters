@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>任務設定｜小怪獸森林</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f7fb;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 24px 12px 48px;
+      box-sizing: border-box;
+    }
+    .page {
+      background: #ffffff;
+      max-width: 720px;
+      width: 100%;
+      border-radius: 20px;
+      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+      padding: 20px 20px 24px;
+      box-sizing: border-box;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: 22px;
+      margin: 0;
+    }
+    .subtitle {
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 4px;
+    }
+    .user-info {
+      font-size: 12px;
+      color: #94a3b8;
+      text-align: right;
+    }
+    .logout-btn {
+      display: inline-block;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+    .tasks-list {
+      margin-top: 8px;
+      margin-bottom: 8px;
+    }
+    .task-row {
+      display: grid;
+      grid-template-columns: 1fr 80px 60px;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .task-row input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 6px 8px;
+      font-size: 13px;
+      border-radius: 8px;
+      border: 1px solid #cbd5f5;
+      outline: none;
+    }
+    .task-row input:focus {
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.15);
+    }
+    .task-row button {
+      font-size: 12px;
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+    .btn-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      gap: 8px;
+    }
+    .btn-primary {
+      flex: 1;
+      border-radius: 999px;
+      border: none;
+      padding: 9px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      background: #4f46e5;
+      color: #ffffff;
+    }
+    .btn-secondary {
+      border-radius: 999px;
+      border: none;
+      padding: 9px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      background: #e5e7eb;
+      color: #111827;
+      white-space: nowrap;
+    }
+    #tasks-message {
+      font-size: 13px;
+      margin-top: 8px;
+      min-height: 18px;
+    }
+    #tasks-message.error {
+      color: #b91c1c;
+    }
+    #tasks-message.success {
+      color: #15803d;
+    }
+    .hint {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-top: 16px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <div>
+        <h1>今日任務設定</h1>
+        <div class="subtitle">
+          在這裡幫孩子設定每天要完成的小任務，<br/>
+          儲存後，Dashboard 會顯示勾選列表。
+        </div>
+      </div>
+      <div class="user-info">
+        <div id="user-email"></div>
+        <button class="logout-btn" id="logout-btn">登出</button>
+      </div>
+    </div>
+
+    <form id="tasks-form">
+      <div class="tasks-list" id="tasks-container">
+        <!-- 任務列會由 JS 填進來 -->
+      </div>
+
+      <div class="btn-row">
+        <button type="button" class="btn-secondary" id="add-task-btn">＋ 新增任務</button>
+        <button type="submit" class="btn-primary">儲存全部任務</button>
+      </div>
+    </form>
+
+    <p id="tasks-message"></p>
+
+    <div class="hint">
+      建議一次設定 3–8 個任務，像是：刷牙、收玩具、整理書包⋯⋯<br/>
+      任務會依照上方順序顯示在「今日任務」頁面。
+    </div>
+  </div>
+
+  <!-- Supabase JS SDK -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script>
+    // 1. 改成你自己的 Supabase 設定（跟 login.html 相同）
+    const SUPABASE_URL = 'https://reunrobejvodzkhbtspp.supabase.co';     // <<== 改這行
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJldW5yb2JlanZvZHpraGJ0c3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMzc1MDEsImV4cCI6MjA3OTgxMzUwMX0.4Tfa94upcxp2wfnBUwBtFJl7H1NdnY3uQxLRxnjBrRE';         // <<== 改這行
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const tasksForm = document.getElementById('tasks-form');
+    const tasksContainer = document.getElementById('tasks-container');
+    const addTaskBtn = document.getElementById('add-task-btn');
+    const tasksMessage = document.getElementById('tasks-message');
+    const userEmailEl = document.getElementById('user-email');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    function setMsg(text, type = '') {
+      tasksMessage.textContent = text;
+      tasksMessage.className = '';
+      if (type) tasksMessage.classList.add(type);
+    }
+
+    // 取得目前使用者
+    async function getCurrentUser() {
+      const { data, error } = await supabase.auth.getUser();
+      if (error) {
+        console.error('getUser error', error);
+        return null;
+      }
+      return data.user || null;
+    }
+
+    // 確保 profiles 有資料
+    async function ensureProfile() {
+      const user = await getCurrentUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('load profile error', error);
+        return;
+      }
+
+      if (!data) {
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({ id: user.id, email: user.email });
+
+        if (insertError) {
+          console.error('create profile error', insertError);
+        }
+      }
+    }
+
+    // 新增一列任務輸入欄
+    function addTaskRow(task = {}) {
+      const div = document.createElement('div');
+      div.className = 'task-row';
+
+      div.innerHTML = `
+        <input
+          type="text"
+          class="task-title"
+          placeholder="例如：刷牙、收玩具⋯⋯"
+          value="${task.title || ''}"
+        />
+        <input
+          type="number"
+          class="task-points"
+          placeholder="點數"
+          min="1"
+          value="${task.points || 1}"
+        />
+        <button type="button" class="remove-task">刪除</button>
+      `;
+
+      div.querySelector('.remove-task').addEventListener('click', () => {
+        div.remove();
+      });
+
+      tasksContainer.appendChild(div);
+    }
+
+    // 載入任務
+    async function loadTasks() {
+      setMsg('載入任務中⋯');
+
+      const user = await getCurrentUser();
+      if (!user) return;
+
+      userEmailEl.textContent = user.email || '';
+
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('sort_order', { ascending: true });
+
+      if (error) {
+        console.error(error);
+        setMsg('載入失敗：' + error.message, 'error');
+        return;
+      }
+
+      tasksContainer.innerHTML = '';
+
+      if (!data || data.length === 0) {
+        // 沒有任務時，先給兩個範例
+        addTaskRow({ title: '刷牙', points: 1 });
+        addTaskRow({ title: '收玩具', points: 1 });
+      } else {
+        data.forEach((t) => addTaskRow(t));
+      }
+
+      setMsg('');
+    }
+
+    // 儲存任務（簡單做法：先刪掉原本的，再全部重建）
+    async function saveTasks() {
+      const user = await getCurrentUser();
+      if (!user) return;
+
+      const rows = Array.from(document.querySelectorAll('.task-row'));
+
+      const tasks = rows
+        .map((row, index) => {
+          const title = row.querySelector('.task-title').value.trim();
+          const points = parseInt(row.querySelector('.task-points').value, 10) || 1;
+          if (!title) return null;
+          return {
+            title,
+            points,
+            sort_order: index,
+          };
+        })
+        .filter(Boolean);
+
+      if (tasks.length === 0) {
+        setMsg('至少需要一個任務唷～', 'error');
+        return;
+      }
+
+      setMsg('儲存中⋯');
+
+      // 先刪除這個使用者原本的任務
+      const { error: deleteError } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (deleteError) {
+        console.error(deleteError);
+        setMsg('刪除舊任務失敗：' + deleteError.message, 'error');
+        return;
+      }
+
+      // 再全部重建
+      const payload = tasks.map((t) => ({
+        ...t,
+        user_id: user.id,
+      }));
+
+      const { error: insertError } = await supabase
+        .from('tasks')
+        .insert(payload);
+
+      if (insertError) {
+        console.error(insertError);
+        setMsg('儲存失敗：' + insertError.message, 'error');
+        return;
+      }
+
+      setMsg('任務已儲存 ✔', 'success');
+    }
+
+    // 登出
+    async function logout() {
+      await supabase.auth.signOut();
+      window.location.href = '/login.html';
+    }
+
+    // 事件綁定
+    addTaskBtn.addEventListener('click', () => {
+      addTaskRow();
+    });
+
+    tasksForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await saveTasks();
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+      await logout();
+    });
+
+    // 頁面載入時檢查登入狀態
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = await getCurrentUser();
+      if (!user) {
+        // 沒登入就丟回 login
+        window.location.href = '/login.html';
+        return;
+      }
+      await ensureProfile();
+      await loadTasks();
+    });
+  </script>
+</body>
+</html>
