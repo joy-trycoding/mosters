@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>任務設定｜小怪獸挑戰王</title>
+  <style>
+    body {
+      background: #FFFDF6;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    h1 {
+      color: #C68A56;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    /* 導覽列樣式 */
+    .navbar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .nav-btn {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid #C68A56;
+      background: #FFF4C8;
+      font-size: 14px;
+      text-decoration: none;
+      color: #5A3B24;
+    }
+    .nav-btn.active {
+      background: #C68A56;
+      color: white;
+      font-weight: bold;
+    }
+
+    .layout {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    @media (min-width: 900px) {
+      .layout {
+        flex-direction: row;
+        align-items: flex-start;
+      }
+      .col {
+        flex: 1;
+      }
+    }
+
+    .panel {
+      background: #FFFFFF;
+      border-radius: 12px;
+      border: 2px solid #C68A56;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .panel h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      color: #5A3B24;
+    }
+    .panel p {
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: #666;
+    }
+
+    .task-card {
+      border: 1px solid #E0C7A0;
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 8px;
+      background: #FFFAED;
+      font-size: 14px;
+    }
+    .task-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .task-name {
+      font-weight: bold;
+    }
+    .task-icon {
+      font-size: 18px;
+      margin-right: 4px;
+    }
+    .task-meta {
+      font-size: 12px;
+      color: #555;
+    }
+    .task-actions {
+      margin-top: 4px;
+      text-align: right;
+      display: flex;
+      gap: 6px;
+      justify-content: flex-end;
+    }
+    button {
+      padding: 6px 12px;
+      background: #FFE680;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    button.danger {
+      background: #F4B0A8;
+    }
+    button.small {
+      font-size: 12px;
+      padding: 4px 10px;
+    }
+
+    /* 表單樣式 */
+    .form-row {
+      margin-bottom: 10px;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 3px;
+      color: #5A3B24;
+    }
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #C68A56;
+      font-size: 14px;
+      background: #FFFCF4;
+    }
+    textarea {
+      min-height: 60px;
+      resize: vertical;
+    }
+    .hint {
+      font-size: 12px;
+      color: #888;
+    }
+    .json-box {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #C68A56;
+      background: #FFFCF4;
+      font-size: 11px;
+      font-family: Consolas, monospace;
+      white-space: pre-wrap;
+    }
+    .edit-indicator {
+      font-size: 12px;
+      color: #B35B3E;
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>任務設定</h1>
+
+<!-- 導覽列：這一頁是「任務設定」 -->
+<div class="navbar">
+  <a href="/dashboard.html" class="nav-btn">今日任務</a>
+  <a href="/rewards.html" class="nav-btn">獎勵小屋</a>
+  <a href="/settings.html" class="nav-btn active">任務設定</a>
+</div>
+
+<div class="layout">
+  <!-- 左邊：目前任務列表 -->
+  <div class="col">
+    <div class="panel">
+      <h2>目前任務列表</h2>
+      <p>這裡會顯示現在所有任務。之後 dashboard 可以改成讀取這份設定。</p>
+      <div id="task-list"></div>
+    </div>
+
+  <!-- 右邊：新增 / 編輯任務表單 -->
+  <div class="col">
+    <div class="panel">
+      <h2>新增 / 編輯任務</h2>
+      <p>新增任務後會儲存在這台裝置的瀏覽器（localStorage）。之後可以再串接到後端。</p>
+
+      <div id="edit-indicator" class="edit-indicator" style="display:none;"></div>
+
+      <div class="form-row">
+        <label for="task-name">任務名稱（給爸媽看）</label>
+        <input id="task-name" type="text" placeholder="例如：整理書包、收拾玩具">
+      </div>
+
+      <div class="form-row">
+        <label for="task-points">任務點數</label>
+        <input id="task-points" type="number" min="1" max="100" value="10">
+      </div>
+
+      <div class="form-row">
+        <label for="task-schedule">任務週期</label>
+        <select id="task-schedule">
+          <option value="everyday">每天</option>
+          <option value="weekdays">週一～週五</option>
+          <option value="weekends">週六、週日</option>
+          <option value="one-time">臨時任務</option>
+        </select>
+        <div class="hint">先用簡單版本：每天 / 平日 / 週末。之後可以再細分到每天。</div>
+      </div>
+
+      <div class="form-row">
+        <label for="task-icon">圖案（emoji，可選）</label>
+        <input id="task-icon" type="text" placeholder="例如：🧸 / 📚 / ⭐ ；如果留白會用預設圖案">
+        <div class="hint">不填的話，會自動使用預設 emoji（⭐）。</div>
+      </div>
+
+      <div class="form-row">
+        <label for="task-tts">語音朗讀內容（可選，給小孩聽）</label>
+        <textarea id="task-tts" placeholder="例如：整理書包，明天上學才不會忘記東西。"></textarea>
+        <div class="hint">不填的話，會用任務名稱直接唸。</div>
+      </div>
+
+      <div class="form-row" style="display:flex; gap:8px;">
+        <button id="add-task-btn">＋ 新增任務</button>
+        <button id="cancel-edit-btn" type="button" class="small" style="display:none;">
+          取消編輯
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 儲存在 localStorage 的 key
+  const STORAGE_KEY = "monsters_tasks_config_v1";
+  const DEFAULT_ICON = "⭐";
+
+  // 預設任務（第一次沒有資料時使用）
+  const defaultTasks = [
+    {
+      id: 1,
+      name: "起床不賴床",
+      points: 10,
+      schedule: "everyday",
+      icon: "⏰",
+      ttsText: "起床不賴床，小勇士出發囉！"
+    },
+    {
+      id: 2,
+      name: "自己刷牙",
+      points: 10,
+      schedule: "everyday",
+      icon: "🪥",
+      ttsText: "自己刷牙，牙齒亮晶晶。"
+    },
+    {
+      id: 3,
+      name: "完成學校作業",
+      points: 20,
+      schedule: "weekdays",
+      icon: "📚",
+      ttsText: "先完成學校作業，再開心玩耍。"
+    },
+    {
+      id: 4,
+      name: "整理書包",
+      points: 10,
+      schedule: "weekdays",
+      icon: "🎒",
+      ttsText: "整理書包，明天才不會忘東西。"
+    },
+    {
+      id: 5,
+      name: "收拾玩具",
+      points: 10,
+      schedule: "everyday",
+      icon: "🧸",
+      ttsText: "玩完玩具，一起把小夥伴們送回家。"
+    }
+  ];
+
+  let tasks = [];
+  let editingTaskId = null; // null 代表「新增模式」
+
+  function loadTasks() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        tasks = JSON.parse(saved);
+      } catch (e) {
+        console.error("解析任務設定失敗，改用預設任務", e);
+        tasks = defaultTasks.slice();
+      }
+    } else {
+      tasks = defaultTasks.slice();
+    }
+  }
+
+  function saveTasks() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+    renderTaskList();
+    renderJsonView();
+  }
+
+  function renderTaskList() {
+    const container = document.getElementById("task-list");
+    container.innerHTML = "";
+
+    if (tasks.length === 0) {
+      container.innerHTML = '<p class="hint">目前沒有任務，請從右邊新增。</p>';
+      return;
+    }
+
+    tasks.forEach(task => {
+      const scheduleText =
+        task.schedule === "everyday"
+          ? "每天"
+          : task.schedule === "weekdays"
+          ? "週一～週五"
+          : task.schedule === "weekends"
+          ? "週六、週日"
+          : task.schedule || "未設定";
+
+      const iconToShow = task.icon || DEFAULT_ICON;
+
+      const div = document.createElement("div");
+      div.className = "task-card";
+      div.innerHTML = `
+        <div class="task-header">
+          <div>
+            <span class="task-icon">${iconToShow}</span>
+            <span class="task-name">${task.name}</span>
+          </div>
+          <div>${task.points} 分</div>
+        </div>
+        <div class="task-meta">
+          週期：${scheduleText}
+        </div>
+        <div class="task-meta">
+          語音內容：${task.ttsText ? task.ttsText : "（未設定，會唸任務名稱）"}
+        </div>
+        <div class="task-actions">
+          <button class="small" onclick="startEditTask(${task.id})">編輯</button>
+          <button class="danger small" onclick="deleteTask(${task.id})">刪除</button>
+        </div>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  function renderJsonView() {
+    const jsonBox = document.getElementById("json-view");
+    jsonBox.value = JSON.stringify(tasks, null, 2);
+  }
+
+  function resetFormToCreateMode() {
+    editingTaskId = null;
+    document.getElementById("task-name").value = "";
+    document.getElementById("task-points").value = "10";
+    document.getElementById("task-schedule").value = "everyday";
+    document.getElementById("task-icon").value = "";
+    document.getElementById("task-tts").value = "";
+
+    document.getElementById("add-task-btn").textContent = "＋ 新增任務";
+    document.getElementById("edit-indicator").style.display = "none";
+    document.getElementById("cancel-edit-btn").style.display = "none";
+  }
+
+  function startEditTask(id) {
+    const t = tasks.find(task => task.id === id);
+    if (!t) return;
+
+    editingTaskId = id;
+
+    // 把任務內容帶入表單
+    document.getElementById("task-name").value = t.name;
+    document.getElementById("task-points").value = t.points;
+    document.getElementById("task-schedule").value = t.schedule || "everyday";
+    document.getElementById("task-icon").value = t.icon || "";
+    document.getElementById("task-tts").value = t.ttsText || "";
+
+    // 更新 UI 提示
+    const indicator = document.getElementById("edit-indicator");
+    indicator.textContent = `目前正在編輯：${t.name}`;
+    indicator.style.display = "block";
+
+    const addBtn = document.getElementById("add-task-btn");
+    addBtn.textContent = "儲存修改";
+
+    const cancelBtn = document.getElementById("cancel-edit-btn");
+    cancelBtn.style.display = "inline-block";
+  }
+
+  function handleFormSubmit() {
+    const nameInput = document.getElementById("task-name");
+    const pointsInput = document.getElementById("task-points");
+    const scheduleSelect = document.getElementById("task-schedule");
+    const iconInput = document.getElementById("task-icon");
+    const ttsInput = document.getElementById("task-tts");
+
+    const name = nameInput.value.trim();
+    const points = parseInt(pointsInput.value, 10);
+    const schedule = scheduleSelect.value;
+    const icon = iconInput.value.trim();
+    const ttsText = ttsInput.value.trim();
+
+    if (!name) {
+      alert("請輸入任務名稱");
+      return;
+    }
+    if (isNaN(points) || points <= 0) {
+      alert("請輸入大於 0 的點數");
+      return;
+    }
+
+    if (editingTaskId === null) {
+      // 👉 新增模式
+      const newId =
+        tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
+
+      const newTask = {
+        id: newId,
+        name,
+        points,
+        schedule,
+        icon: icon || undefined,
+        ttsText: ttsText || undefined
+      };
+
+      tasks.push(newTask);
+      saveTasks();
+      resetFormToCreateMode();
+      alert("已新增任務：「" + name + "」");
+    } else {
+      // 👉 編輯模式
+      const t = tasks.find(task => task.id === editingTaskId);
+      if (!t) {
+        alert("找不到這個任務，請重新整理頁面");
+        return;
+      }
+
+      t.name = name;
+      t.points = points;
+      t.schedule = schedule;
+      t.icon = icon || undefined;
+      t.ttsText = ttsText || undefined;
+
+      saveTasks();
+      resetFormToCreateMode();
+      alert("已更新任務：「" + name + "」");
+    }
+  }
+
+  function deleteTask(id) {
+    const target = tasks.find(t => t.id === id);
+    if (!target) return;
+    const ok = confirm(`確定要刪除任務「${target.name}」嗎？`);
+    if (!ok) return;
+
+    tasks = tasks.filter(t => t.id !== id);
+    saveTasks();
+
+    // 如果正在編輯這一筆，順便退出編輯模式
+    if (editingTaskId === id) {
+      resetFormToCreateMode();
+    }
+  }
+
+  // 綁定按鈕事件
+  document.addEventListener("DOMContentLoaded", () => {
+    loadTasks();
+    renderTaskList();
+    renderJsonView();
+
+    document
+      .getElementById("add-task-btn")
+      .addEventListener("click", handleFormSubmit);
+
+    document
+      .getElementById("cancel-edit-btn")
+      .addEventListener("click", resetFormToCreateMode);
+  });
+</script>
+
+</body>
+</html>

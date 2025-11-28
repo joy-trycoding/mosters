@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>小怪獸森林｜收集表</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- 共用 header -->
+
+  <main class="page page-monsters">
+    <h1>小怪獸森林</h1>
+    <p>完成每日任務，就能解鎖新的小怪獸，填滿你的收集表！</p>
+
+    <!-- 孵化中的怪獸區 -->
+    <section class="current-hatch">
+      <h2>目前孵化中的怪獸</h2>
+      <div class="monster-card big" data-monster-id="lemon-001">
+        <div class="monster-visual">
+          <!-- 先用 CSS 動畫讓蛋晃動；未來可以換成 sprite / Lottie -->
+          <div class="egg-animation">🥚</div>
+        </div>
+        <div class="monster-details">
+          <h3>神祕的小果吉蛋</h3>
+          <p>再多累積一點點點數，小果吉就會破蛋而出！</p>
+          <p>目前累積點數：<span id="currentHatchPoints">150</span> / 200</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 全部怪獸收集表 -->
+    <section class="collection">
+      <h2>怪獸收集表</h2>
+      <div class="monster-grid">
+        <!-- 已解鎖示範 -->
+        <div class="monster-card collected" data-monster-id="lemon-001">
+          <div class="monster-avatar">🍋</div>
+          <h3>小果吉</h3>
+          <p class="tag">勇敢練習型</p>
+          <p class="meta">孵化日期：2025-11-25</p>
+        </div>
+        <!-- 未解鎖示範 -->
+        <div class="monster-card locked" data-monster-id="water-001">
+          <div class="monster-avatar">❓</div>
+          <h3>？？？</h3>
+          <p class="tag">尚未解鎖</p>
+          <p class="meta">提示：連續 7 天完成睡前任務</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
