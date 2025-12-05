@@ -268,7 +268,7 @@
       // 2. 登入失敗後，檢查是否為後台設定問題
       if (loginError) {
           if (loginError.message && loginError.message.includes('Email not confirmed')) {
-              showMessage("⚠ 登入失敗：後台設定錯誤！請到 Supabase 後台關閉 'Email confirmation'。", "error");
+              showMessage("⚠ 登入失敗：後台設定錯誤！請到 Supabase 後台關閉 'Confirm sign up'。", "error");
               toggleButtons(false);
               return;
           }
@@ -347,10 +347,6 @@
             password,
           });
 
-          if (loginError) {
-              console.error("【Supabase 登入失敗】", loginError);
-          }
-
           if (loginData.user) {
             // 登入成功
             showMessage("登入成功！", "info"); // 信箱已註冊過，輸入正確密碼:登入成功
@@ -359,7 +355,7 @@
           } else {
             // 密碼不正確或 'Email not confirmed'
             if (loginError && loginError.message.includes('Email not confirmed')) {
-                showMessage("⚠ 登入失敗：後台設定錯誤！請到 Supabase 後台關閉 'Email confirmation'。", "error");
+                showMessage("⚠ 登入失敗：後台設定錯誤！請到 Supabase 後台關閉 'Confirm sign up'。", "error");
             } else {
                 showMessage("已有帳號，請輸入正確密碼。", "error"); 
             }
@@ -369,7 +365,7 @@
       } else if (signupError) {
           // 最終錯誤處理
           if (signupError.message && signupError.message.includes('Email not confirmed')) {
-              showMessage("⚠ 註冊失敗：後台設定錯誤！請到 Supabase 後台關閉 'Email confirmation'。", "error");
+              showMessage("⚠ 註冊失敗：後台設定錯誤！請到 Supabase 後台關閉 'Confirm sign up'。", "error");
           } else {
               showMessage(signupError.message || "註冊失敗，請再試一次。", "error");
           }
@@ -392,6 +388,7 @@
   </script>
 </body>
 </html>
+
 
 
 
