@@ -5,50 +5,342 @@
   <title>小怪獸森林｜收集表</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* 新增：怪獸卡片視覺優化 */
+    .monster-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .monster-card {
+      text-align: center;
+      padding: 10px;
+      border-radius: 12px;
+      border: 2px solid #C68A56;
+      background: #FFFDF6;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s;
+    }
+
+    .monster-card.collected {
+        border-color: #4CAF50;
+    }
+    .monster-card.locked {
+        opacity: 0.6;
+        filter: grayscale(100%);
+        background: #F0F0F0;
+        border-style: dashed;
+        cursor: help;
+    }
+
+    .monster-card.big {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .monster-avatar {
+      font-size: 40px;
+      margin-bottom: 8px;
+    }
+
+    .monster-visual {
+      width: 100px;
+      height: 100px;
+      margin: 10px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .egg-animation {
+      font-size: 60px;
+      animation: wobble 1s ease-in-out infinite alternate;
+    }
+
+    @keyframes wobble {
+      0% { transform: rotate(0deg) scale(1); }
+      50% { transform: rotate(2deg) scale(1.05); }
+      100% { transform: rotate(-2deg) scale(1); }
+    }
+
+    .monster-details h3 {
+      margin-top: 0;
+    }
+
+    .monster-card h3 {
+        font-size: 16px;
+        color: #5A3B24;
+    }
+    .tag {
+        font-size: 11px;
+        color: #888;
+        margin-bottom: 4px;
+    }
+    .meta {
+        font-size: 12px;
+        color: #666;
+    }
+    .hint-new {
+        color: #E74C3C;
+        font-weight: bold;
+        margin-top: 10px;
+    }
+
+  </style>
 </head>
 <body>
   <!-- 共用 header -->
-
+  <div class="navbar">
+    <a href="index.html" class="nav-btn">首頁</a>
+    <a href="dashboard.html" class="nav-btn">今日任務</a>
+    <a href="setting.html" class="nav-btn">任務設定</a>
+    <a href="rewards.html" class="nav-btn">獎勵商城</a>
+    <a href="monsters.html" class="nav-btn active">小怪獸森林</a>
+    <a href="story.html" class="nav-btn">挑戰王故事</a>    
+    <a href="children.html" class="nav-btn">孩子資料</a> 
+</div>
   <main class="page page-monsters">
-    <h1>小怪獸森林</h1>
-    <p>完成每日任務，就能解鎖新的小怪獸，填滿你的收集表！</p>
+    <h1>小怪獸森林｜收集表</h1>
+    <p>完成任務累積點數，每累積 100 點就能孵化一隻新的小怪獸！</p>
 
     <!-- 孵化中的怪獸區 -->
     <section class="current-hatch">
-      <h2>目前孵化中的怪獸</h2>
-      <div class="monster-card big" data-monster-id="lemon-001">
-        <div class="monster-visual">
-          <!-- 先用 CSS 動畫讓蛋晃動；未來可以換成 sprite / Lottie -->
-          <div class="egg-animation">🥚</div>
-        </div>
-        <div class="monster-details">
-          <h3>神祕的小果吉蛋</h3>
-          <p>再多累積一點點點數，小果吉就會破蛋而出！</p>
-          <p>目前累積點數：<span id="currentHatchPoints">150</span> / 200</p>
-        </div>
+      <h2>目前點數與孵化進度</h2>
+      <div class="monster-card big" id="hatch-status-card">
+        <!-- 這裡將由 JS 渲染內容 -->
+        載入中...
       </div>
     </section>
 
     <!-- 全部怪獸收集表 -->
     <section class="collection">
-      <h2>怪獸收集表</h2>
-      <div class="monster-grid">
-        <!-- 已解鎖示範 -->
-        <div class="monster-card collected" data-monster-id="lemon-001">
-          <div class="monster-avatar">🍋</div>
-          <h3>小果吉</h3>
-          <p class="tag">勇敢練習型</p>
-          <p class="meta">孵化日期：2025-11-25</p>
-        </div>
-        <!-- 未解鎖示範 -->
-        <div class="monster-card locked" data-monster-id="water-001">
-          <div class="monster-avatar">❓</div>
-          <h3>？？？</h3>
-          <p class="tag">尚未解鎖</p>
-          <p class="meta">提示：連續 7 天完成睡前任務</p>
-        </div>
+      <h2>怪獸收集表 (已收集 <span id="collected-count">0</span> / <span id="total-count">20</span>)</h2>
+      <div class="monster-grid" id="monster-collection-grid">
+        <!-- 怪獸列表將由 JS 渲染 -->
       </div>
     </section>
   </main>
+  <script src="[https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2](https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2)"></script>
+<script>
+  // 統一的 Supabase 設定 (使用您 login.html 中的真實金鑰)
+  const SUPABASE_URL = "[https://reunrobejvodzkhbtspp.supabase.co](https://reunrobejvodzkhbtspp.supabase.co)";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJldW5yb2JlanZvZHpraGJ0c3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMzc1MDEsImV4cCI6MjA3OTgxMzUwMX0.4Tfa94upcxp2wfnBUwBtFJl7H1NdnY3uQxLRxnjBrRE";
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  
+  const ACTIVE_CHILD_KEY = "monsters_active_child_id"; // 儲存活躍孩子 ID
+  const TOTAL_MONSTERS = 20; // 總怪獸數
+  const HATCH_THRESHOLD = 100; // 孵化點數門檻
+  
+  let currentUser = null;
+  let activeChildId = null;
+  let activeChildData = null; 
+
+  // ★ 虛擬怪獸資料庫 (等待您設計角色後替換)
+  const MONSTER_DB = [
+    { id: 'm01', name: '小果吉', icon: '🍋', description: '勇敢練習型', condition: '初始夥伴' },
+    { id: 'm02', name: '小草怪', icon: '🌱', description: '安靜守護者', condition: '累積100點' },
+    { id: 'm03', name: '火火龍', icon: '🔥', description: '熱情奔跑者', condition: '累積200點' },
+    { id: 'm04', name: '冰淇淋', icon: '🍦', description: '甜美思考家', condition: '累積300點' },
+    { id: 'm05', name: '小雲朵', icon: '☁️', description: '夢想觀察家', condition: '累積400點' },
+    // 預留 20 隻怪獸的空間...
+    { id: 'm06', name: '彩虹馬', icon: '🌈', description: '快樂製造機', condition: '累積500點' },
+    { id: 'm07', name: '星星魚', icon: '⭐️', description: '知識探險家', condition: '累積600點' },
+    { id: 'm08', name: '小蜜蜂', icon: '🐝', description: '勤勞小助手', condition: '累積700點' },
+    { id: 'm09', name: '積木獸', icon: '🧱', description: '創意建築師', condition: '累積800點' },
+    { id: 'm10', name: '泡泡球', icon: '🫧', description: '好奇發問者', condition: '累積900點' },
+    { id: 'm11', name: '機器人', icon: '🤖', description: '邏輯分析師', condition: '累積1000點' },
+    { id: 'm12', name: '橡皮擦', icon: '✏️', description: '錯誤修正員', condition: '累積1100點' },
+    { id: 'm13', name: '小火車', icon: '🚂', description: '時間管理者', condition: '累積1200點' },
+    { id: 'm14', name: '飛碟帽', icon: '👽', description: '想像力大王', condition: '累積1300點' },
+    { id: 'm15', name: '燈泡精', icon: '💡', description: '靈感捕捉者', condition: '累積1400點' },
+    { id: 'm16', name: '月亮臉', icon: '🌝', description: '情緒調適家', condition: '累積1500點' },
+    { id: 'm17', name: '小書蟲', icon: '🐛', description: '閱讀愛好者', condition: '累積1600點' },
+    { id: 'm18', name: '相機獸', icon: '📸', description: '美好紀錄者', condition: '累積1700點' },
+    { id: 'm19', name: '睡袋熊', icon: '🐻', description: '規律休息者', condition: '累積1800點' },
+    { id: 'm20', name: '夢想家', icon: '✨', description: '終極挑戰王', condition: '累積1900點' },
+  ].slice(0, TOTAL_MONSTERS); // 確保只取 20 隻
+
+  // ★ 載入當前孩子資料 (與 rewards.html 相同)
+  async function loadActiveChildData(userId, childId) {
+       const { data, error } = await supabaseClient
+        .from("children")
+        .select("id, name, nickname, total_points, monsters_collected")
+        .eq("id", childId)
+        .eq("parent_id", userId)
+        .single();
+        
+        if (error || !data) {
+            console.error("載入活躍孩子資料失敗", error);
+            localStorage.removeItem(ACTIVE_CHILD_KEY); 
+            return null;
+        }
+        return data;
+  }
+
+  // ★ 檢查登入狀態與 Active Child (與 dashboard.html 相同)
+  async function requireAuth() {
+    const { data } = await supabaseClient.auth.getSession();
+    
+    if (!data.session || !data.session.user) {
+      const path = window.location.pathname;
+      const fileName = path.substring(path.lastIndexOf("/") + 1) || "monsters.html";
+      const redirect = encodeURIComponent(fileName);
+      window.location.href = `login.html?redirect=${redirect}`;
+      return null;
+    }
+    
+    currentUser = data.session.user;
+    activeChildId = localStorage.getItem(ACTIVE_CHILD_KEY); 
+    
+    if (!activeChildId) {
+        const path = window.location.pathname;
+        const fileName = path.substring(path.lastIndexOf("/") + 1) || "monsters.html";
+        const redirect = encodeURIComponent(fileName);
+        window.location.href = `children.html?redirect=${redirect}`;
+        return null; 
+    }
+    
+    activeChildId = parseInt(activeChildId, 10);
+    activeChildData = await loadActiveChildData(currentUser.id, activeChildId);
+    if (!activeChildData) {
+        window.location.href = `children.html`;
+        return null;
+    }
+
+    return currentUser;
+  }
+
+  // ★ 渲染怪獸孵化進度與列表
+  function renderMonsters() {
+      const totalPoints = activeChildData.total_points;
+      let collectedIds = activeChildData.monsters_collected || [];
+      
+      // 確保初始夥伴 'm01' 總是在收集列表中
+      if (!collectedIds.includes('m01')) {
+          collectedIds.unshift('m01');
+      }
+
+      const currentMonsterCount = collectedIds.length;
+      const potentialMonsterCount = Math.floor(totalPoints / HATCH_THRESHOLD);
+      
+      document.getElementById('collected-count').textContent = currentMonsterCount;
+      document.getElementById('total-count').textContent = TOTAL_MONSTERS;
+      
+      const isHatchingReady = potentialMonsterCount > currentMonsterCount;
+      
+      // 1. 渲染孵化狀態卡
+      const hatchCardEl = document.getElementById('hatch-status-card');
+      if (isHatchingReady) {
+          // 有新怪獸可孵化！
+          hatchCardEl.innerHTML = `
+            <div class="monster-visual">
+                <div class="egg-animation" style="animation: wobble 0.5s ease-in-out infinite alternate;">🥚</div>
+            </div>
+            <div class="monster-details">
+                <h3>有新的小怪獸準備破殼了！</h3>
+                <p class="hint-new">點擊下方按鈕開始孵化！</p>
+                <p>目前點數：${totalPoints} 分</p>
+                <button onclick="hatchNextMonster()">點我孵化</button>
+            </div>
+          `;
+      } else {
+          // 仍在累積點數
+          const neededPoints = HATCH_THRESHOLD - (totalPoints % HATCH_THRESHOLD);
+          hatchCardEl.innerHTML = `
+            <div class="monster-visual">
+                <div class="egg-animation">🥚</div>
+            </div>
+            <div class="monster-details">
+                <h3>小怪獸蛋正在溫暖中...</h3>
+                <p>再累積 **${neededPoints}** 點，就能孵化下一隻怪獸！</p>
+                <p>目前點數：${totalPoints} 分 (進度: ${HATCH_THRESHOLD - neededPoints} / ${HATCH_THRESHOLD})</p>
+            </div>
+          `;
+      }
+      
+      // 2. 渲染收集列表
+      const gridEl = document.getElementById('monster-collection-grid');
+      gridEl.innerHTML = MONSTER_DB.map((monster, index) => {
+          const isCollected = collectedIds.includes(monster.id);
+          const isNextInLine = index === currentMonsterCount;
+          
+          return `
+            <div class="monster-card ${isCollected ? 'collected' : 'locked'}">
+              <div class="monster-avatar">${isCollected ? monster.icon : (isNextInLine ? '🐣' : '❓')}</div>
+              <h3>${isCollected ? monster.name : '？？？'}</h3>
+              <p class="tag">${isCollected ? monster.description : (isNextInLine ? '下一隻' : '未解鎖')}</p>
+              <p class="meta">${isCollected ? `第 ${index + 1} 隻` : monster.condition}</p>
+            </div>
+          `;
+      }).join('');
+  }
+
+  // ★ 孵化下一隻怪獸的邏輯 (更新 Supabase)
+  async function hatchNextMonster() {
+      if (!activeChildData) return;
+      
+      let collectedIds = activeChildData.monsters_collected || [];
+      if (!collectedIds.includes('m01')) {
+          collectedIds.unshift('m01'); // 確保初始怪獸
+      }
+
+      const currentMonsterCount = collectedIds.length;
+      const potentialMonsterCount = Math.floor(activeChildData.total_points / HATCH_THRESHOLD);
+
+      if (potentialMonsterCount <= currentMonsterCount) {
+          alert("點數還不夠孵化下一隻喔！請先完成任務。");
+          return;
+      }
+      
+      // 找出下一隻怪獸
+      const nextMonster = MONSTER_DB[currentMonsterCount];
+      if (!nextMonster) {
+          alert("恭喜您！所有怪獸都已經收集完成了！");
+          return;
+      }
+      
+      collectedIds.push(nextMonster.id);
+      
+      // 更新 Supabase 
+      const { error } = await supabaseClient
+          .from('children')
+          .update({ monsters_collected: collectedIds })
+          .eq('id', activeChildId)
+          .eq('parent_id', currentUser.id);
+          
+      if (error) {
+          console.error("孵化怪獸失敗", error);
+          alert("孵化失敗，請檢查網路或後台RLS設定！");
+          return;
+      }
+      
+      // 更新前端狀態並重新渲染
+      activeChildData.monsters_collected = collectedIds;
+      alert(`🎉 恭喜！你孵化了新的小怪獸：【${nextMonster.name}】！`);
+      renderMonsters();
+  }
+
+  // 綁定給 HTML 呼叫
+  window.hatchNextMonster = hatchNextMonster;
+
+
+  // 頁面初始化時先檢查
+  document.addEventListener("DOMContentLoaded", async () => {
+    const user = await requireAuth();
+    if (!user) return;
+    
+    console.log("登入中的爸媽：", user.id, user.email);
+    
+    // 載入後渲染怪獸列表
+    renderMonsters();
+  });
+</script>
+
 </body>
 </html>
