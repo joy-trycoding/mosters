@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>任務設定｜小怪獸挑戰王</title>
+  <link rel="stylesheet" href="styles.css" />
   <style>
     body {
       background: #FFFDF6;
@@ -109,6 +110,10 @@
       border-radius: 8px;
       font-size: 13px;
       cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover:not(:disabled) {
+      background: #FFD966;
     }
     button.danger {
       background: #F4B0A8;
@@ -164,33 +169,62 @@
       color: #B35B3E;
       margin-bottom: 8px;
     }
+
+    /* 提示訊息 Toast */
+    .toast {
+      position: fixed;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.85);
+      color: #fff;
+      padding: 12px 22px;
+      border-radius: 12px;
+      font-size: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 9999;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
 
 <h1>任務設定</h1>
 
-<!-- 導覽列：這一頁是「任務設定」 -->
+<!-- 導覽列：統一導覽列 -->
 <div class="navbar">
-  <a href="/dashboard.html" class="nav-btn">今日任務</a>
-  <a href="/rewards.html" class="nav-btn">獎勵小屋</a>
-  <a href="/settings.html" class="nav-btn active">任務設定</a>
+  <a href="index.html" class="nav-btn">首頁</a>
+  <a href="dashboard.html" class="nav-btn ">今日任務</a>
+  <a href="setting.html" class="nav-btn active">任務設定</a>
+  <a href="rewards.html" class="nav-btn">獎勵商城</a>
+  <a href="monsters.html" class="nav-btn">小怪獸森林</a>
+  <a href="story.html" class="nav-btn">挑戰王故事</a>
+  <a href="children.html" class="nav-btn">孩子資料</a> 
 </div>
 
 <div class="layout">
   <!-- 左邊：目前任務列表 -->
   <div class="col">
-    <div class="panel">
+    <div class="panel" id="task-list-section">
       <h2>目前任務列表</h2>
-      <p>這裡會顯示現在所有任務。之後 dashboard 可以改成讀取這份設定。</p>
+      <p>這裡會顯示現在所有任務。目前任務儲存在此瀏覽器，尚未串接後端。</p>
       <div id="task-list"></div>
     </div>
+  </div>
 
   <!-- 右邊：新增 / 編輯任務表單 -->
   <div class="col">
-    <div class="panel">
+    <div class="panel" id="edit-section">
       <h2>新增 / 編輯任務</h2>
-      <p>新增任務後會儲存在這台裝置的瀏覽器（localStorage）。之後可以再串接到後端。</p>
+      <p>新增任務後會儲存在這台裝置的瀏覽器（localStorage）。</p>
 
       <div id="edit-indicator" class="edit-indicator" style="display:none;"></div>
 
@@ -210,9 +244,9 @@
           <option value="everyday">每天</option>
           <option value="weekdays">週一～週五</option>
           <option value="weekends">週六、週日</option>
-          <option value="one-time">臨時任務</option>
+          <option value="one-time">臨時任務 (只出現一次)</option>
         </select>
-        <div class="hint">先用簡單版本：每天 / 平日 / 週末。之後可以再細分到每天。</div>
+        <div class="hint">目前只支援簡單的週期設定。</div>
       </div>
 
       <div class="form-row">
@@ -224,7 +258,7 @@
       <div class="form-row">
         <label for="task-tts">語音朗讀內容（可選，給小孩聽）</label>
         <textarea id="task-tts" placeholder="例如：整理書包，明天上學才不會忘記東西。"></textarea>
-        <div class="hint">不填的話，會用任務名稱直接唸。</div>
+        <div class="hint">不填的話，會用任務名稱直接唸。這是給任務頁 TTS 用的內容。</div>
       </div>
 
       <div class="form-row" style="display:flex; gap:8px;">
@@ -237,6 +271,9 @@
   </div>
 </div>
 
+<!-- 提示訊息容器 -->
+<div id="toast" class="toast hidden">任務設定完成</div>
+
 <script>
   // 儲存在 localStorage 的 key
   const STORAGE_KEY = "monsters_tasks_config_v1";
@@ -244,46 +281,11 @@
 
   // 預設任務（第一次沒有資料時使用）
   const defaultTasks = [
-    {
-      id: 1,
-      name: "起床不賴床",
-      points: 10,
-      schedule: "everyday",
-      icon: "⏰",
-      ttsText: "起床不賴床，小勇士出發囉！"
-    },
-    {
-      id: 2,
-      name: "自己刷牙",
-      points: 10,
-      schedule: "everyday",
-      icon: "🪥",
-      ttsText: "自己刷牙，牙齒亮晶晶。"
-    },
-    {
-      id: 3,
-      name: "完成學校作業",
-      points: 20,
-      schedule: "weekdays",
-      icon: "📚",
-      ttsText: "先完成學校作業，再開心玩耍。"
-    },
-    {
-      id: 4,
-      name: "整理書包",
-      points: 10,
-      schedule: "weekdays",
-      icon: "🎒",
-      ttsText: "整理書包，明天才不會忘東西。"
-    },
-    {
-      id: 5,
-      name: "收拾玩具",
-      points: 10,
-      schedule: "everyday",
-      icon: "🧸",
-      ttsText: "玩完玩具，一起把小夥伴們送回家。"
-    }
+    { id: 1, name: "起床不賴床", points: 10, schedule: "everyday", icon: "⏰", ttsText: "起床不賴床，小勇士出發囉！" },
+    { id: 2, name: "自己刷牙", points: 10, schedule: "everyday", icon: "🪥", ttsText: "自己刷牙，牙齒亮晶晶。" },
+    { id: 3, name: "完成學校作業", points: 20, schedule: "weekdays", icon: "📚", ttsText: "先完成學校作業，再開心玩耍。" },
+    { id: 4, name: "整理書包", points: 10, schedule: "weekdays", icon: "🎒", ttsText: "整理書包，明天才不會忘東西。" },
+    { id: 5, name: "收拾玩具", points: 10, schedule: "everyday", icon: "🧸", ttsText: "玩完玩具，一起把小夥伴們送回家。" }
   ];
 
   let tasks = [];
@@ -306,7 +308,6 @@
   function saveTasks() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
     renderTaskList();
-    renderJsonView();
   }
 
   function renderTaskList() {
@@ -326,7 +327,9 @@
           ? "週一～週五"
           : task.schedule === "weekends"
           ? "週六、週日"
-          : task.schedule || "未設定";
+          : task.schedule === "one-time"
+          ? "臨時任務 (一次性)"
+          : "未設定";
 
       const iconToShow = task.icon || DEFAULT_ICON;
 
@@ -353,11 +356,6 @@
       `;
       container.appendChild(div);
     });
-  }
-
-  function renderJsonView() {
-    const jsonBox = document.getElementById("json-view");
-    jsonBox.value = JSON.stringify(tasks, null, 2);
   }
 
   function resetFormToCreateMode() {
@@ -396,6 +394,26 @@
 
     const cancelBtn = document.getElementById("cancel-edit-btn");
     cancelBtn.style.display = "inline-block";
+
+    document
+      .getElementById("edit-section")
+      .scrollIntoView({ behavior: "smooth" });
+  }
+
+  function showToast(message) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+
+    toast.classList.remove("hidden");
+    void toast.offsetWidth;
+    toast.classList.add("show");
+
+    setTimeout(() => {
+      toast.classList.remove("show");
+      setTimeout(() => {
+        toast.classList.add("hidden");
+      }, 300);
+    }, 2000); 
   }
 
   function handleFormSubmit() {
@@ -412,16 +430,16 @@
     const ttsText = ttsInput.value.trim();
 
     if (!name) {
-      alert("請輸入任務名稱");
+      showToast("請輸入任務名稱");
       return;
     }
     if (isNaN(points) || points <= 0) {
-      alert("請輸入大於 0 的點數");
+      showToast("請輸入大於 0 的點數");
       return;
     }
 
     if (editingTaskId === null) {
-      // 👉 新增模式
+      // 新增模式
       const newId =
         tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
 
@@ -437,12 +455,16 @@
       tasks.push(newTask);
       saveTasks();
       resetFormToCreateMode();
-      alert("已新增任務：「" + name + "」");
+
+      document
+        .getElementById("task-list-section")
+        .scrollIntoView({ behavior: "smooth" });
+      showToast(`已新增任務：「${name}」`);
     } else {
-      // 👉 編輯模式
+      // 編輯模式
       const t = tasks.find(task => task.id === editingTaskId);
       if (!t) {
-        alert("找不到這個任務，請重新整理頁面");
+        showToast("找不到這個任務，請重新整理頁面");
         return;
       }
 
@@ -454,30 +476,35 @@
 
       saveTasks();
       resetFormToCreateMode();
-      alert("已更新任務：「" + name + "」");
+
+      document
+        .getElementById("task-list-section")
+        .scrollIntoView({ behavior: "smooth" });
+      showToast("任務設定完成");
     }
   }
 
   function deleteTask(id) {
     const target = tasks.find(t => t.id === id);
     if (!target) return;
-    const ok = confirm(`確定要刪除任務「${target.name}」嗎？`);
+    
+    // ⚠️ 這裡先保留原有的 confirm() 邏輯，但建議未來替換為自訂 UI 模組
+    const ok = window.confirm(`確定要刪除任務「${target.name}」嗎？`);
     if (!ok) return;
 
     tasks = tasks.filter(t => t.id !== id);
     saveTasks();
 
-    // 如果正在編輯這一筆，順便退出編輯模式
     if (editingTaskId === id) {
       resetFormToCreateMode();
     }
+    showToast(`已刪除任務：「${target.name}」`);
   }
 
   // 綁定按鈕事件
   document.addEventListener("DOMContentLoaded", () => {
     loadTasks();
     renderTaskList();
-    renderJsonView();
 
     document
       .getElementById("add-task-btn")
@@ -488,6 +515,68 @@
       .addEventListener("click", resetFormToCreateMode);
   });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // 統一的 Supabase 設定 (使用您 login.html 中的真實金鑰)
+  const SUPABASE_URL = "https://reunrobejvodzkhbtspp.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJldW5yb2JlanZvZHpraGJ0c3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMzc1MDEsImV4cCI6MjA3OTgxMzUwMX0.4Tfa94upcxp2wfnBUwBtFJl7H1NdnY3uQxLRxnjBrRE";
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // 複製自 dashboard.html 的 checkActiveChildAndRedirect 邏輯
+  async function checkActiveChildAndRedirect(user) {
+      // 1. 檢查是否有孩子資料
+      let hasChild = false;
+      const { data: childrenRows, error: childrenError } = await supabaseClient
+        .from("children")
+        .select("id")
+        .eq("parent_id", user.id)
+        .limit(1);
+
+      if (!childrenError && childrenRows && childrenRows.length > 0) {
+        hasChild = true;
+      }
+      
+      // 2. 如果沒有孩子，強制跳轉到 children.html
+      if (!hasChild) {
+        // 取得目前頁面的檔名，例如 setting.html
+        const path = window.location.pathname;
+        const fileName = path.substring(path.lastIndexOf("/") + 1) || "setting.html";
+        const redirect = encodeURIComponent(fileName);
+        window.location.href = `children.html?redirect=${redirect}`;
+        return false; // 阻止後續載入
+      }
+      return true; // 有孩子，繼續載入頁面
+  }
+
+  async function requireAuth() {
+    const { data } = await supabaseClient.auth.getSession();
+    
+    if (!data.session || !data.session.user) {
+      // 登入狀態遺失，導向登入頁
+      const path = window.location.pathname;
+      const fileName = path.substring(path.lastIndexOf("/") + 1) || "setting.html";
+      const redirect = encodeURIComponent(fileName);
+      window.location.href = `login.html?redirect=${redirect}`;
+      return null;
+    }
+
+    // 登入成功後，檢查是否有設定孩子。
+    const hasActiveChild = await checkActiveChildAndRedirect(data.session.user);
+    if (!hasActiveChild) {
+        return null; // 被導向 children.html，終止執行
+    }
+
+    return data.session.user;
+  }
+
+  // 頁面初始化時先檢查
+  document.addEventListener("DOMContentLoaded", async () => {
+    const user = await requireAuth();
+    if (!user) return;
+    console.log("登入中的爸媽：", user.id, user.email);
+  });
+</script>
 
 </body>
 </html>
+
