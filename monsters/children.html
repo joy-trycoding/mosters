@@ -318,10 +318,10 @@
   <div id="toast" class="toast hidden">已儲存</div>
 
   <!-- Supabase JS -->
-  <script src="[https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2](https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2)"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     // 統一的 Supabase 設定 (使用您 login.html 中的真實金鑰)
-    const SUPABASE_URL = "[https://reunrobejvodzkhbtspp.supabase.co](https://reunrobejvodzkhbtspp.supabase.co)";
+    const SUPABASE_URL = "https://reunrobejvodzkhbtspp.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJldW5yb2JlanZvZHpraGJ0c3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMzc1MDEsImV4cCI6MjA3OTgxMzUwMX0.4Tfa94upcxp2wfnBUwBtFJl7H1NdnY3uQxLRxnjBrRE";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -459,6 +459,13 @@
       if (!child) return;
       setActiveChildId(childId); // 只需要 ID
       showToast("已切換目前小怪獸");
+      
+      // ★ 新增：檢查是否有 redirect 參數，如果有，在切換後嘗試導回目標頁面
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectTarget = urlParams.get("redirect");
+      if (redirectTarget) {
+          window.location.href = redirectTarget;
+      }
     };
 
     // 編輯孩子
@@ -558,8 +565,8 @@
           name,
           nickname: nickname || null,
           birthday: birthday || null,
-          total_points: 0, // ★ 新增：初始點數為 0
-          monsters_collected: [], // ★ 新增：初始怪獸列表為空
+          total_points: 0, // 初始點數為 0
+          monsters_collected: [], // 初始怪獸列表為空
         };
 
         const { data, error } = await supabaseClient
@@ -576,31 +583,33 @@
         }
 
         children.push(data);
+        let redirectTarget = null;
+        
         // 如果這是第一個孩子，自動設為 active
         if (children.length === 1) {
             setActiveChildId(data.id);
+            // 且因為是第一個孩子，檢查是否有 redirect 參數
+            const urlParams = new URLSearchParams(window.location.search);
+            redirectTarget = urlParams.get("redirect");
         }
         
         renderChildrenList();
         resetForm();
         showToast("已新增孩子");
         
-        // 檢查是否有 redirect 參數，如果有，導回目標頁面
-        const urlParams = new URLSearchParams(window.location.search);
-        const redirectTarget = urlParams.get("redirect");
+        // ★ 修正迴圈：只在成功新增且有 redirect 參數時跳轉
         if (redirectTarget) {
             window.location.href = redirectTarget;
         }
 
       } else {
-        // 編輯
+        // 編輯 (邏輯不變)
         showInfo("儲存中，請稍候…");
 
         const updateData = {
           name,
           nickname: nickname || null,
           birthday: birthday || null,
-          // total_points 和 monsters_collected 不在這裡修改
         };
 
         const { data, error } = await supabaseClient
@@ -681,7 +690,9 @@
       
       // 在 children.html 裡，如果沒有 active child，將第一個孩子設為 active (如果有的話)
       if (getActiveChildId() === null && children.length > 0) {
-          setActiveChildId(children[0].id);
+          // 不執行 setActiveChildId，因為我們只在新增時自動跳轉。
+          // 這裡只是預設在 localStorage 裡沒有紀錄時，先讓 UI 顯示第一個。
+          renderCurrentChild();
       }
 
       saveBtn.addEventListener("click", handleSaveChild);
@@ -690,3 +701,4 @@
   </script>
 </body>
 </html>
+
