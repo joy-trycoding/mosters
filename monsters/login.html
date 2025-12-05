@@ -2,261 +2,297 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <title>登入｜小怪獸森林</title>
+  <title>爸媽登入｜小怪獸挑戰王</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="styles.css" />
   <style>
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #f5f7fb;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      margin: 0;
+      background: #FFFDF6;
+      font-family: Arial, sans-serif;
+      padding: 20px;
     }
-    .card {
-      background: #ffffff;
-      padding: 24px 28px;
+    .login-container {
+      max-width: 420px;
+      margin: 40px auto;
+      background: #FFFFFF;
       border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
-      width: 100%;
-      max-width: 360px;
+      border: 2px solid #C68A56;
+      padding: 20px 18px 24px;
     }
     h1 {
-      font-size: 20px;
-      margin: 0 0 4px;
+      text-align: center;
+      color: #C68A56;
+      margin-bottom: 4px;
     }
     .subtitle {
+      text-align: center;
       font-size: 13px;
-      color: #64748b;
-      margin-bottom: 20px;
+      color: #777;
+      margin-bottom: 16px;
     }
     label {
       display: block;
       font-size: 13px;
-      margin-bottom: 6px;
-      color: #0f172a;
+      margin-bottom: 4px;
+      color: #5A3B24;
     }
     input {
       width: 100%;
       box-sizing: border-box;
       padding: 8px 10px;
-      font-size: 14px;
       border-radius: 8px;
-      border: 1px solid #cbd5f5;
-      outline: none;
-      margin-bottom: 12px;
-    }
-    input:focus {
-      border-color: #4f46e5;
-      box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.2);
-    }
-    .btn-row {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
+      border: 1px solid #C68A56;
+      margin-bottom: 10px;
+      background: #FFFCF4;
+      font-size: 14px;
     }
     button {
-      flex: 1;
-      border: none;
+      width: 100%;
+      padding: 10px;
       border-radius: 999px;
-      padding: 8px 12px;
-      font-size: 14px;
+      border: none;
+      background: #FFC857;
+      font-size: 15px;
+      font-weight: bold;
+      color: #5A3B24;
       cursor: pointer;
+      margin-top: 4px;
+      transition: background 0.2s;
     }
-    #login-btn {
-      background: #4f46e5;
-      color: #ffffff;
+    button:hover:not(:disabled) {
+        background: #FFD966;
     }
-    #signup-btn {
-      background: #e5e7eb;
-      color: #111827;
+    button.secondary {
+      background: #FFE7A0;
     }
-    #auth-message {
+    /* 訊息區域 */
+    #message-box {
       font-size: 13px;
-      margin-top: 12px;
+      margin-top: 8px;
       min-height: 18px;
+      padding: 6px;
+      border-radius: 6px;
+      text-align: center;
     }
-    #auth-message.error {
-      color: #b91c1c;
+    .error-message {
+      color: #C0392B;
+      background-color: #FEEEEE;
+      border: 1px solid #C0392B;
     }
-    #auth-message.success {
-      color: #15803d;
+    .info-message {
+      color: #27AE60;
+      background-color: #E8F8F5;
+      border: 1px solid #27AE60;
     }
-    .hint {
-      margin-top: 16px;
+    .small-text {
       font-size: 12px;
-      color: #94a3b8;
-      line-height: 1.5;
+      color: #888;
+      margin-top: 6px;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-  <div class="card">
+  <div class="login-container">
     <h1>爸媽登入</h1>
-    <div class="subtitle">登入後就可以設定今日任務、獎勵商城，晚上跟孩子一起勾選完成！</div>
+    <div class="subtitle">設定任務、管理點數、查看兌換紀錄</div>
 
-    <form id="auth-form">
-      <label for="email">Email（登入帳號）</label>
-      <input type="email" id="email" required placeholder="example@mail.com" />
+    <label for="email">Email（登入帳號）</label>
+    <input type="email" id="email" placeholder="you@example.com" />
 
-      <label for="password">密碼（至少 6 碼）</label>
-      <input type="password" id="password" required minlength="6" placeholder="******" />
+    <label for="password">密碼</label>
+    <input type="password" id="password" placeholder="至少 6 碼" />
 
-      <div class="btn-row">
-        <button type="submit" id="login-btn">登入</button>
-        <button type="button" id="signup-btn">註冊新帳號</button>
-      </div>
-    </form>
+    <button id="btn-login">登入</button>
+    <button id="btn-signup" class="secondary">還沒有帳號？建立新帳號</button>
 
-    <p id="auth-message"></p>
-
-    <div class="hint">
-      第一次使用，請先輸入 Email 與密碼，按「註冊新帳號」。<br/>
-      之後就可以用同一組帳號密碼登入。
-    </div>
+    <div id="message-box" class="error-message" style="display:none;"></div>
+    <div class="small-text">登入成功後，系統會記住你的狀態，下次可以直接開啟任務頁面。</div>
   </div>
 
-  <!-- 載入 Supabase JS SDK -->
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <!-- Supabase JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // 1. 這裡要改成你自己的 Supabase 設定
-    const SUPABASE_URL = 'https://reunrobejvodzkhbtspp.supabase.co';         // <<== 改這行
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJldW5yb2JlanZvZHpraGJ0c3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMzc1MDEsImV4cCI6MjA3OTgxMzUwMX0.4Tfa94upcxp2wfnBUwBtFJl7H1NdnY3uQxLRxnjBrRE';             // <<== 改這行
+    // 統一的 Supabase 設定
+    const SUPABASE_URL = "https://reunrobejvodzkhbtspp.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJldW5yb2JlanZvZHpraGJ0c3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMzc1MDEsImV4cCI6MjA3OTgxMzUwMX0.4Tfa94upcxp2wfnBUwBtFJl7H1NdnY3uQxLRxnjBrRE";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const messageBoxEl = document.getElementById("message-box");
 
-    const authForm = document.getElementById('auth-form');
-    const loginBtn = document.getElementById('login-btn');
-    const signupBtn = document.getElementById('signup-btn');
-    const messageEl = document.getElementById('auth-message');
+    // 解析 URL 上的 redirect 參數，例如 login.html?redirect=dashboard.html
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirectParam = urlParams.get("redirect");
 
-    function setMessage(text, type = '') {
-      messageEl.textContent = text;
-      messageEl.className = '';
-      if (type) {
-        messageEl.classList.add(type);
+    // 只允許跳轉到這幾個頁面，避免亂跳
+    const ALLOWED_REDIRECTS = [
+      "index.html",
+      "dashboard.html",
+      "setting.html",
+      "rewards.html",
+      "monsters.html",
+      "story.html",
+      "children.html"
+    ];
+
+    function showMessage(msg, type = "error") {
+      messageBoxEl.textContent = msg || "";
+      messageBoxEl.className = ""; // 清空所有 class
+      messageBoxEl.style.display = msg ? "block" : "none";
+      if (msg) {
+        messageBoxEl.classList.add(type === "error" ? "error-message" : "info-message");
       }
     }
 
-    // 小工具：取得目前登入使用者
-    async function getCurrentUser() {
-      const { data, error } = await supabase.auth.getUser();
-      if (error) {
-        console.error('getUser error:', error);
-        return null;
+    function getSafeRedirectTarget() {
+      if (!redirectParam) return null;
+      if (ALLOWED_REDIRECTS.includes(redirectParam)) {
+        return redirectParam;
       }
-      return data.user || null;
+      return null;
     }
 
-    // 確保 profiles 有這個使用者的紀錄（對應資料表 profiles）
-    async function ensureProfile() {
-      const user = await getCurrentUser();
+    // 確保 profiles 有一筆對應資料（若沒有就建立）
+    async function ensureProfile(user) {
       if (!user) return;
+      const userId = user.id;
+      const email = user.email;
 
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
+      const { data, error } = await supabaseClient
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
         .maybeSingle();
 
       if (error) {
-        console.error('load profile error', error);
+        console.error("讀取 profile 失敗：", error);
         return;
       }
 
       if (!data) {
-        const { error: insertError } = await supabase
-          .from('profiles')
-          .insert({ id: user.id, email: user.email });
-
-        if (insertError) {
-          console.error('create profile error', insertError);
+        const { error: insertErr } = await supabaseClient.from("profiles").insert({
+          id: userId,
+          email,
+          name: email, // 先用 email 當暫時名稱
+        });
+        if (insertErr) {
+          console.error("建立 profile 失敗：", insertErr);
         }
       }
     }
 
-    // 2. 表單送出時，預設當「登入」
-    authForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
-      await login(email, password);
-    });
+    async function handlePostLoginRedirect(user) {
+      if (!user) return;
 
-    // 3. 按「註冊新帳號」時
-    signupBtn.addEventListener('click', async () => {
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
-      await signup(email, password);
-    });
+      await ensureProfile(user);
 
-    // 4. 登入流程
-    async function login(email, password) {
-      if (!email || !password) {
-        setMessage('請輸入 Email 與密碼', 'error');
+      // 檢查是否已經有孩子
+      let hasChild = false;
+
+      const { data: childrenRows, error: childrenError } = await supabaseClient
+        .from("children")
+        .select("id")
+        .eq("parent_id", user.id)
+        .limit(1);
+
+      if (!childrenError && childrenRows && childrenRows.length > 0) {
+        hasChild = true;
+      }
+
+      // 1. 若還沒有任何孩子 → 先去 children.html 做設定
+      if (!hasChild) {
+        const safeRedirect = getSafeRedirectTarget() || "dashboard.html";
+        // 帶上 redirect，等設定好孩子後可以回來
+        window.location.href = `children.html?redirect=${encodeURIComponent(safeRedirect)}`;
         return;
       }
 
-      setMessage('登入中，請稍候⋯');
+      // 2. 若已經有孩子 → 回原本想去的頁面，或預設 dashboard
+      const safeRedirect = getSafeRedirectTarget();
+      if (safeRedirect) {
+        window.location.href = safeRedirect;
+      } else {
+        window.location.href = "dashboard.html";
+      }
+    }
 
-      const { data, error } = await supabase.auth.signInWithPassword({
+    // 登入
+    async function handleLogin() {
+      showMessage("");
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+      if (!email || !password) {
+        showMessage("請輸入 Email 和密碼", "error");
+        return;
+      }
+
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
-        console.error(error);
-        setMessage('登入失敗：' + error.message, 'error');
+        showMessage(error.message || "登入失敗，請再試一次", "error");
         return;
       }
 
-      await ensureProfile();
-      setMessage('登入成功，前往任務設定頁面⋯', 'success');
+      if (!data.user) {
+        showMessage("登入失敗：沒有取得 user 資訊", "error");
+        return;
+      }
 
-      // 登入成功後導向任務設定頁
-      window.location.href = '/setting';
+      // 使用共同流程處理後續導向
+      await handlePostLoginRedirect(data.user);
     }
 
-    // 5. 註冊流程
-    async function signup(email, password) {
+    // 註冊
+    async function handleSignUp() {
+      showMessage("");
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
       if (!email || !password) {
-        setMessage('請輸入 Email 與密碼', 'error');
+        showMessage("請輸入 Email 和密碼", "error");
         return;
       }
 
-      if (password.length < 6) {
-        setMessage('密碼至少需要 6 個字元', 'error');
-        return;
-      }
-
-      setMessage('註冊中，請稍候⋯');
-
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await supabaseClient.auth.signUp({
         email,
         password,
       });
 
       if (error) {
-        console.error(error);
-        setMessage('註冊失敗：' + error.message, 'error');
+        showMessage(error.message || "註冊失敗，請再試一次", "error");
         return;
       }
 
-      // 有些專案會要求 Email 驗證，這裡先當作註冊後已登入
-      await ensureProfile();
-      setMessage('註冊成功，已為您登入，前往任務設定頁面⋯', 'success');
-
-      window.location.href = '/setting';
+      // 修正問題 1：確保註冊成功後，若 Supabase 自動登入 (data.session 存在)，則執行跳轉。
+      if (data.session && data.session.user) {
+        // 有 session，代表已自動登入 (通常在 Email 驗證關閉時發生)
+        showMessage("註冊成功，已自動幫你登入！", "info");
+        await handlePostLoginRedirect(data.session.user);
+      } else {
+        // 沒有 session → 提醒使用者去收信驗證 (通常在 Email 驗證開啟時發生)
+        showMessage("註冊成功，請先到 Email 收信並完成驗證，再回到這裡登入。", "info");
+      }
     }
 
-    // 6. 如果已經登入，就直接導到 /setting（避免重複看到登入畫面）
-    document.addEventListener('DOMContentLoaded', async () => {
-      const user = await getCurrentUser();
-      if (user) {
-        window.location.href = '/setting';
+    document.getElementById("btn-login").addEventListener("click", handleLogin);
+    document.getElementById("btn-signup").addEventListener("click", handleSignUp);
+
+    // 若已經有登入 session，進頁面時就直接幫你處理下一步
+    (async () => {
+      const { data } = await supabaseClient.auth.getSession();
+      if (data.session && data.session.user) {
+        // 顯示一個提示訊息，然後自動導向
+        showMessage("已偵測到登入狀態，自動導向中...", "info");
+        await handlePostLoginRedirect(data.session.user);
       }
-    });
+    })();
   </script>
 </body>
+</html>
+</body>
+
 </html>
