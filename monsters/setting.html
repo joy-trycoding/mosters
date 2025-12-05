@@ -39,6 +39,8 @@
     }
 
     .layout {
+      max-width: 960px;
+      margin: 0 auto;
       display: flex;
       flex-direction: column;
       gap: 20px;
@@ -430,11 +432,13 @@
     const ttsText = ttsInput.value.trim();
 
     if (!name) {
-      showToast("請輸入任務名稱");
+      // TODO: 替換 alert
+      alert("請輸入任務名稱");
       return;
     }
     if (isNaN(points) || points <= 0) {
-      showToast("請輸入大於 0 的點數");
+      // TODO: 替換 alert
+      alert("請輸入大於 0 的點數");
       return;
     }
 
@@ -464,7 +468,8 @@
       // 編輯模式
       const t = tasks.find(task => task.id === editingTaskId);
       if (!t) {
-        showToast("找不到這個任務，請重新整理頁面");
+        // TODO: 替換 alert
+        alert("找不到這個任務，請重新整理頁面");
         return;
       }
 
@@ -488,7 +493,7 @@
     const target = tasks.find(t => t.id === id);
     if (!target) return;
     
-    // ⚠️ 這裡先保留原有的 confirm() 邏輯，但建議未來替換為自訂 UI 模組
+    // TODO: 替換 confirm
     const ok = window.confirm(`確定要刪除任務「${target.name}」嗎？`);
     if (!ok) return;
 
@@ -515,30 +520,20 @@
       .addEventListener("click", resetFormToCreateMode);
   });
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="[https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2](https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2)"></script>
 <script>
   // 統一的 Supabase 設定 (使用您 login.html 中的真實金鑰)
-  const SUPABASE_URL = "https://reunrobejvodzkhbtspp.supabase.co";
+  const SUPABASE_URL = "[https://reunrobejvodzkhbtspp.supabase.co](https://reunrobejvodzkhbtspp.supabase.co)";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJldW5yb2JlanZvZHpraGJ0c3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMzc1MDEsImV4cCI6MjA3OTgxMzUwMX0.4Tfa94upcxp2wfnBUwBtFJl7H1NdnY3uQxLRxnjBrRE";
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const ACTIVE_CHILD_KEY = "monsters_active_child_id"; // 儲存活躍孩子 ID
 
   // 複製自 dashboard.html 的 checkActiveChildAndRedirect 邏輯
   async function checkActiveChildAndRedirect(user) {
-      // 1. 檢查是否有孩子資料
-      let hasChild = false;
-      const { data: childrenRows, error: childrenError } = await supabaseClient
-        .from("children")
-        .select("id")
-        .eq("parent_id", user.id)
-        .limit(1);
-
-      if (!childrenError && childrenRows && childrenRows.length > 0) {
-        hasChild = true;
-      }
+      const activeChildId = localStorage.getItem(ACTIVE_CHILD_KEY);
       
-      // 2. 如果沒有孩子，強制跳轉到 children.html
-      if (!hasChild) {
-        // 取得目前頁面的檔名，例如 setting.html
+      // 1. 如果沒有 Active Child ID，強制跳轉到 children.html
+      if (!activeChildId) {
         const path = window.location.pathname;
         const fileName = path.substring(path.lastIndexOf("/") + 1) || "setting.html";
         const redirect = encodeURIComponent(fileName);
@@ -579,4 +574,5 @@
 
 </body>
 </html>
+
 
