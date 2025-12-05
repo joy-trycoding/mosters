@@ -126,10 +126,10 @@
       </div>
     </section>
   </main>
-  <script src="[https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2](https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2)"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  // 統一的 Supabase 設定 (使用您 login.html 中的真實金鑰)
-  const SUPABASE_URL = "[https://reunrobejvodzkhbtspp.supabase.co](https://reunrobejvodzkhbtspp.supabase.co)";
+  // ★ 修正：統一的 Supabase 設定
+  const SUPABASE_URL = "https://reunrobejvodzkhbtspp.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJldW5yb2JlanZvZHpraGJ0c3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMzc1MDEsImV4cCI6MjA3OTgxMzUwMX0.4Tfa94upcxp2wfnBUwBtFJl7H1NdnY3uQxLRxnjBrRE";
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   
@@ -294,6 +294,7 @@
       const potentialMonsterCount = Math.floor(activeChildData.total_points / HATCH_THRESHOLD);
 
       if (potentialMonsterCount <= currentMonsterCount) {
+          // TODO: 替換 alert
           alert("點數還不夠孵化下一隻喔！請先完成任務。");
           return;
       }
@@ -301,6 +302,7 @@
       // 找出下一隻怪獸
       const nextMonster = MONSTER_DB[currentMonsterCount];
       if (!nextMonster) {
+          // TODO: 替換 alert
           alert("恭喜您！所有怪獸都已經收集完成了！");
           return;
       }
@@ -316,12 +318,14 @@
           
       if (error) {
           console.error("孵化怪獸失敗", error);
+          // TODO: 替換 alert
           alert("孵化失敗，請檢查網路或後台RLS設定！");
           return;
       }
       
       // 更新前端狀態並重新渲染
       activeChildData.monsters_collected = collectedIds;
+      // TODO: 替換 alert
       alert(`🎉 恭喜！你孵化了新的小怪獸：【${nextMonster.name}】！`);
       renderMonsters();
   }
@@ -344,3 +348,4 @@
 
 </body>
 </html>
+
