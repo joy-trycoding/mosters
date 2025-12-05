@@ -105,7 +105,7 @@
     <input type="email" id="email" placeholder="you@example.com" />
 
     <label for="password">密碼</label>
-    <input type="password" id="password" placeholder="至少 6 碼" />
+    <input type="password" id="password" placeholder="至少 8 碼" /> <!-- 提示改為 8 碼 -->
 
     <button id="btn-login">登入</button>
     <button id="btn-signup" class="secondary">還沒有帳號？建立新帳號</button>
@@ -127,6 +127,9 @@
     const messageBoxEl = document.getElementById("message-box");
     const btnLogin = document.getElementById("btn-login");
     const btnSignup = document.getElementById("btn-signup");
+    
+    // 密碼至少需要 8 個字元 (提高標準以解決潛在的後台配置問題)
+    const MIN_PASSWORD_LENGTH = 8; 
 
     // 解析 URL 上的 redirect 參數
     const urlParams = new URLSearchParams(window.location.search);
@@ -218,17 +221,30 @@
       window.location.href = targetPage;
     }
 
-    // ★ 登入按鈕的核心邏輯 (符合您的需求)
+    // ★ 密碼長度驗證函數
+    function validatePassword(password) {
+        if (password.length < MIN_PASSWORD_LENGTH) {
+            showMessage(`密碼長度不足！請輸入至少 ${MIN_PASSWORD_LENGTH} 個字元的密碼。`, "error");
+            toggleButtons(false);
+            return false;
+        }
+        return true;
+    }
+
+    // ★ 登入按鈕的核心邏輯
     async function handleLogin() {
       showMessage("");
       toggleButtons(true);
       const email = emailInput.value.trim();
       const password = passwordInput.value.trim();
+
       if (!email || !password) {
         showMessage("請輸入 Email 和密碼", "error");
         toggleButtons(false);
         return;
       }
+      
+      if (!validatePassword(password)) return; 
       
       showMessage("登入中...", "info");
 
@@ -237,6 +253,10 @@
         email,
         password,
       });
+      
+      if (loginError) {
+          console.error("【Supabase 登入失敗】", loginError);
+      }
 
       if (loginData.user) {
         // 登入成功
@@ -245,13 +265,24 @@
         return;
       }
       
-      // 2. 登入失敗 (可能是密碼錯誤，或使用者不存在)
+      // 2. 登入失敗後，檢查是否為後台設定問題
+      if (loginError) {
+          if (loginError.message && loginError.message.includes('Email not confirmed')) {
+              showMessage("⚠ 登入失敗：後台設定錯誤！請到 Supabase 後台關閉 'Email confirmation'。", "error");
+              toggleButtons(false);
+              return;
+          }
+      }
       
       // 3. 嘗試註冊 (未註冊，選登入 -> 自動註冊)
       let { data: signupData, error: signupError } = await supabaseClient.auth.signUp({
         email,
         password,
       });
+
+      if (signupError) {
+          console.error("【Supabase 註冊失敗】", signupError);
+      }
 
       if (signupData.user) {
         // 註冊成功，且因為關閉了 Email 驗證，所以會自動登入
@@ -262,29 +293,31 @@
       
       // 4. 註冊失敗 (錯誤碼 422: User already registered)
       if (signupError && signupError.message.includes('User already registered')) {
-        // 走到這裡代表：1. 登入失敗 (密碼錯) 2. 註冊失敗 (帳號已存在)
         // 結論：帳號存在，但密碼輸入錯誤
-        showMessage("已有帳號，請輸入正確密碼。", "error"); // 已註冊選登入: 登入失敗
+        showMessage("已有帳號，請輸入正確密碼。", "error"); 
         toggleButtons(false);
         return;
       }
       
-      // 5. 其他錯誤
+      // 5. 最終錯誤處理
       showMessage(loginError?.message || signupError?.message || "登入失敗，請再試一次。", "error");
       toggleButtons(false);
     }
 
-    // ★ 註冊按鈕的核心邏輯 (符合您的需求)
+    // ★ 註冊按鈕的核心邏輯
     async function handleSignUp() {
       showMessage("");
       toggleButtons(true);
       const email = emailInput.value.trim();
       const password = passwordInput.value.trim();
+
       if (!email || !password) {
         showMessage("請輸入 Email 和密碼", "error");
         toggleButtons(false);
         return;
       }
+      
+      if (!validatePassword(password)) return; // 新增密碼長度檢查
 
       showMessage("註冊中...", "info");
 
@@ -294,6 +327,10 @@
         password,
       });
 
+      if (signupError) {
+          console.error("【Supabase 註冊失敗】", signupError);
+      }
+      
       if (signupData.user) {
         // 註冊成功，自動登入 (因為關閉 Email 驗證)
         showMessage("註冊成功，已自動幫你登入！", "info");
@@ -304,27 +341,40 @@
       // 2. 註冊失敗 (錯誤碼 422: User already registered)
       if (signupError && signupError.message.includes('User already registered')) {
         
-        // 3. 嘗試登入 (信箱已註冊過，輸入密碼)
-        let { data: loginData, error: loginError } = await supabaseClient.auth.signInWithPassword({
-          email,
-          password,
-        });
+          // 嘗試登入 (信箱已註冊過，輸入密碼)
+          let { data: loginData, error: loginError } = await supabaseClient.auth.signInWithPassword({
+            email,
+            password,
+          });
 
-        if (loginData.user) {
-          // 登入成功
-          showMessage("登入成功！", "info"); // 信箱已註冊過，輸入正確密碼:登入成功
-          await handlePostLoginRedirect(loginData.user);
-          return;
-        } else {
-          // 密碼不正確
-          showMessage("已有帳號，請輸入正確密碼。", "error"); // 信箱已註冊過，不正確密碼:已有帳號，請輸入正確密碼
-          toggleButtons(false);
-          return;
-        }
+          if (loginError) {
+              console.error("【Supabase 登入失敗】", loginError);
+          }
+
+          if (loginData.user) {
+            // 登入成功
+            showMessage("登入成功！", "info"); // 信箱已註冊過，輸入正確密碼:登入成功
+            await handlePostLoginRedirect(loginData.user);
+            return;
+          } else {
+            // 密碼不正確或 'Email not confirmed'
+            if (loginError && loginError.message.includes('Email not confirmed')) {
+                showMessage("⚠ 登入失敗：後台設定錯誤！請到 Supabase 後台關閉 'Email confirmation'。", "error");
+            } else {
+                showMessage("已有帳號，請輸入正確密碼。", "error"); 
+            }
+            toggleButtons(false);
+            return;
+          }
+      } else if (signupError) {
+          // 最終錯誤處理
+          if (signupError.message && signupError.message.includes('Email not confirmed')) {
+              showMessage("⚠ 註冊失敗：後台設定錯誤！請到 Supabase 後台關閉 'Email confirmation'。", "error");
+          } else {
+              showMessage(signupError.message || "註冊失敗，請再試一次。", "error");
+          }
       }
       
-      // 4. 其他註冊錯誤
-      showMessage(signupError?.message || "註冊失敗，請再試一次。", "error");
       toggleButtons(false);
     }
 
@@ -342,5 +392,6 @@
   </script>
 </body>
 </html>
+
 
 
