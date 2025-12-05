@@ -135,10 +135,10 @@
 <div id="toast" class="toast hidden">已儲存</div>
 
 
-<script src="[https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2](https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2)"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  // 統一的 Supabase 設定 (使用您 login.html 中的真實金鑰)
-  const SUPABASE_URL = "[https://reunrobejvodzkhbtspp.supabase.co](https://reunrobejvodzkhbtspp.supabase.co)";
+  // ★ 修正：統一的 Supabase 設定
+  const SUPABASE_URL = "https://reunrobejvodzkhbtspp.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJldW5yb2JlanZvZHpraGJ0c3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMzc1MDEsImV4cCI6MjA3OTgxMzUwMX0.4Tfa94upcxp2wfnBUwBtFJl7H1NdnY3uQxLRxnjBrRE";
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   
@@ -218,7 +218,8 @@
     }
     
     if (activeChildData.total_points < cost) {
-      showToast(`點數還不夠，還差 ${cost - activeChildData.total_points} 分喔！`);
+      // TODO: 替換 alert
+      alert(`點數還不夠，還差 ${cost - activeChildData.total_points} 分喔！`);
       return;
     }
 
@@ -316,5 +317,6 @@
 
 </body>
 </html>
+
 
 
