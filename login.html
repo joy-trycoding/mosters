@@ -245,7 +245,15 @@
         return;
       }
       
-      // 2. 登入失敗 (可能是密碼錯誤，或使用者不存在)
+      // 2. 登入失敗 (可能是密碼錯誤，使用者不存在，或是 Email 未確認)
+      if (loginError) {
+          // 檢查是否為 Email not confirmed 的錯誤
+          if (loginError.message && loginError.message.includes('Email not confirmed')) {
+              showMessage("⚠ 登入失敗：後台設定錯誤！請到 Supabase 後台關閉 'Email confirmation'。", "error");
+              toggleButtons(false);
+              return;
+          }
+      }
       
       // 3. 嘗試註冊 (未註冊，選登入 -> 自動註冊)
       let { data: signupData, error: signupError } = await supabaseClient.auth.signUp({
@@ -262,9 +270,8 @@
       
       // 4. 註冊失敗 (錯誤碼 422: User already registered)
       if (signupError && signupError.message.includes('User already registered')) {
-        // 走到這裡代表：1. 登入失敗 (密碼錯) 2. 註冊失敗 (帳號已存在)
         // 結論：帳號存在，但密碼輸入錯誤
-        showMessage("已有帳號，請輸入正確密碼。", "error"); // 已註冊選登入: 登入失敗
+        showMessage("已有帳號，請輸入正確密碼。", "error"); 
         toggleButtons(false);
         return;
       }
@@ -304,27 +311,32 @@
       // 2. 註冊失敗 (錯誤碼 422: User already registered)
       if (signupError && signupError.message.includes('User already registered')) {
         
-        // 3. 嘗試登入 (信箱已註冊過，輸入密碼)
-        let { data: loginData, error: loginError } = await supabaseClient.auth.signInWithPassword({
-          email,
-          password,
-        });
+          // 嘗試登入 (信箱已註冊過，輸入密碼)
+          let { data: loginData, error: loginError } = await supabaseClient.auth.signInWithPassword({
+            email,
+            password,
+          });
 
-        if (loginData.user) {
-          // 登入成功
-          showMessage("登入成功！", "info"); // 信箱已註冊過，輸入正確密碼:登入成功
-          await handlePostLoginRedirect(loginData.user);
-          return;
-        } else {
-          // 密碼不正確
-          showMessage("已有帳號，請輸入正確密碼。", "error"); // 信箱已註冊過，不正確密碼:已有帳號，請輸入正確密碼
-          toggleButtons(false);
-          return;
-        }
+          if (loginData.user) {
+            // 登入成功
+            showMessage("登入成功！", "info"); // 信箱已註冊過，輸入正確密碼:登入成功
+            await handlePostLoginRedirect(loginData.user);
+            return;
+          } else {
+            // 密碼不正確
+            showMessage("已有帳號，請輸入正確密碼。", "error"); // 信箱已註冊過，不正確密碼:已有帳號，請輸入正確密碼
+            toggleButtons(false);
+            return;
+          }
+      } else if (signupError) {
+          // 檢查是否為 Email not confirmed 的錯誤
+          if (signupError.message && signupError.message.includes('Email not confirmed')) {
+              showMessage("⚠ 註冊失敗：後台設定錯誤！請到 Supabase 後台關閉 'Email confirmation'。", "error");
+          } else {
+              showMessage(signupError.message || "註冊失敗，請再試一次。", "error");
+          }
       }
       
-      // 4. 其他註冊錯誤
-      showMessage(signupError?.message || "註冊失敗，請再試一次。", "error");
       toggleButtons(false);
     }
 
