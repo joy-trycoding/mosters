@@ -123,11 +123,10 @@
 </div>
 
 <div id="points-box">
+  <strong>目前小怪獸：</strong>
+  <span id="child-display-name">請選擇孩子</span>
   <strong>目前點數：</strong>
-  <span id="points">140</span> 分
-  <div style="font-size: 14px; color: #666; margin-top: 4px;">
-    （之後會改成從後端抓真正的點數，現在先用假資料練習）
-  </div>
+  <span id="points">0</span> 分
 </div>
 
 <div id="rewards"></div>
@@ -136,48 +135,138 @@
 <div id="toast" class="toast hidden">已儲存</div>
 
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="[https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2](https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2)"></script>
 <script>
   // 統一的 Supabase 設定 (使用您 login.html 中的真實金鑰)
-  const SUPABASE_URL = "https://reunrobejvodzkhbtspp.supabase.co";
+  const SUPABASE_URL = "[https://reunrobejvodzkhbtspp.supabase.co](https://reunrobejvodzkhbtspp.supabase.co)";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJldW5yb2JlanZvZHpraGJ0c3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMzc1MDEsImV4cCI6MjA3OTgxMzUwMX0.4Tfa94upcxp2wfnBUwBtFJl7H1NdnY3uQxLRxnjBrRE";
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   
+  const ACTIVE_CHILD_KEY = "monsters_active_child_id"; // 儲存活躍孩子 ID
+  let currentUser = null;
+  let activeChildId = null;
+  let activeChildData = null; // 當前孩子的資料 (包含 total_points)
+
   // Toast
-  function showToast(message) { /* ... 略過 ... */ }
+  function showToast(message) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.classList.remove("hidden");
+    void toast.offsetWidth; // reflow
+    toast.classList.add("show");
+    setTimeout(() => {
+      toast.classList.remove("show");
+      setTimeout(() => {
+        toast.classList.add("hidden");
+      }, 300);
+    }, 2000);
+  }
   
   // ---- 假資料：之後會從後端/資料庫抓 ----
-  let currentPoints = 140; 
-  const rewards = [ /* ... 略過 ... */ ];
+  const rewards = [
+    { id: 1, name: '冰淇淋一份', need: 300 },
+    { id: 2, name: 'Switch 30 分鐘', need: 350 },
+    { id: 3, name: '睡前故事指定選一本', need: 100 },
+    { id: 4, name: '週末點心', need: 250 },
+    { id: 5, name: '爸爸陪玩 10 分鐘', need: 100 },
+    { id: 6, name: '看電視 10 分鐘', need: 200 },
+    { id: 7, name: '假日去公園玩', need: 300 },
+    { id: 8, name: '冒險驚喜小禮物', need: 250 },
+  ];
 
-  function renderPoints() { /* ... 略過 ... */ }
-  function renderRewards() { /* ... 略過 ... */ }
-  function redeemReward(id) { /* ... 略過 ... */ }
-  
-  // 複製自 dashboard.html 的 checkActiveChildAndRedirect 邏輯
-  async function checkActiveChildAndRedirect(user) {
-      // 1. 檢查是否有孩子資料
-      let hasChild = false;
-      const { data: childrenRows, error: childrenError } = await supabaseClient
-        .from("children")
-        .select("id")
-        .eq("parent_id", user.id)
-        .limit(1);
-
-      if (!childrenError && childrenRows && childrenRows.length > 0) {
-        hasChild = true;
-      }
+  function updatePointsDisplay() {
+      const currentPoints = activeChildData ? activeChildData.total_points : 0;
+      const displayName = activeChildData ? (activeChildData.nickname || activeChildData.name) : "請選擇孩子";
       
-      // 2. 如果沒有孩子，強制跳轉到 children.html
-      if (!hasChild) {
-        // 取得目前頁面的檔名，例如 rewards.html
-        const path = window.location.pathname;
-        const fileName = path.substring(path.lastIndexOf("/") + 1) || "rewards.html";
-        const redirect = encodeURIComponent(fileName);
-        window.location.href = `children.html?redirect=${redirect}`;
-        return false; // 阻止後續載入
-      }
-      return true; // 有孩子，繼續載入頁面
+      document.getElementById("points").textContent = currentPoints;
+      document.getElementById("child-display-name").textContent = displayName;
+
+      // 刷新獎勵列表，因為點數可能更新了
+      renderRewards(currentPoints);
+  }
+
+  function renderRewards(currentPoints) {
+    const container = document.getElementById('rewards');
+    container.innerHTML = '';
+
+    rewards.forEach(r => {
+      const canRedeem = currentPoints >= r.need;
+      const diff = r.need - currentPoints;
+
+      const statusText = canRedeem
+        ? '可以兌換 🎉'
+        : `還差 ${diff} 分`;
+
+      const html = `
+        <div class="reward-card">
+          <div class="reward-title">${r.name}</div>
+          <div class="reward-points">需要點數：${r.need} 分</div>
+          <button onclick="redeemReward(${r.id}, ${r.need})" ${canRedeem ? '' : 'disabled'}>
+            ${canRedeem ? '兌換' : '暫時無法兌換'}
+          </button>
+          <div class="status">${statusText}</div>
+        </div>
+      `;
+      container.innerHTML += html;
+    });
+  }
+
+  async function redeemReward(rewardId, cost) {
+    if (!currentUser || !activeChildData) {
+        showToast("請先選擇孩子！");
+        return;
+    }
+    
+    if (activeChildData.total_points < cost) {
+      showToast(`點數還不夠，還差 ${cost - activeChildData.total_points} 分喔！`);
+      return;
+    }
+
+    // TODO: 這裡要換成自訂 UI 提示，避免 alert/confirm
+    const confirmRedeem = confirm(
+      `確定要兌換獎勵嗎？\n這會花費 ${cost} 分。`
+    );
+    if (!confirmRedeem) return;
+
+    // 1. 扣點數並更新 Supabase
+    const newTotalPoints = activeChildData.total_points - cost;
+    
+    const { error } = await supabaseClient
+        .from('children')
+        .update({ total_points: newTotalPoints })
+        .eq('id', activeChildId)
+        .eq('parent_id', currentUser.id);
+
+    if (error) {
+        console.error("兌換點數失敗", error);
+        showToast("兌換失敗，請檢查網路！");
+        return;
+    }
+
+    // 2. 更新前端狀態
+    activeChildData.total_points = newTotalPoints;
+    updatePointsDisplay();
+    
+    // TODO: 這裡要新增記錄兌換歷史的邏輯
+    
+    showToast(`已兌換成功！記得給小朋友獎勵喔 😊`);
+  }
+
+  // ★ 載入當前孩子資料
+  async function loadActiveChildData(userId, childId) {
+       const { data, error } = await supabaseClient
+        .from("children")
+        .select("id, name, nickname, total_points, monsters_collected")
+        .eq("id", childId)
+        .eq("parent_id", userId)
+        .single();
+        
+        if (error || !data) {
+            console.error("載入活躍孩子資料失敗", error);
+            localStorage.removeItem(ACTIVE_CHILD_KEY); 
+            return null;
+        }
+        return data;
   }
 
   // 檢查登入狀態並導向
@@ -192,14 +281,26 @@
       window.location.href = `login.html?redirect=${redirect}`;
       return null;
     }
-
-    // 登入成功後，檢查是否有設定孩子。
-    const hasActiveChild = await checkActiveChildAndRedirect(data.session.user);
-    if (!hasActiveChild) {
-        return null; // 被導向 children.html，終止執行
+    
+    currentUser = data.session.user;
+    activeChildId = localStorage.getItem(ACTIVE_CHILD_KEY); // 從 localStorage 讀取
+    
+    if (!activeChildId) {
+        const path = window.location.pathname;
+        const fileName = path.substring(path.lastIndexOf("/") + 1) || "rewards.html";
+        const redirect = encodeURIComponent(fileName);
+        window.location.href = `children.html?redirect=${redirect}`;
+        return null;
+    }
+    
+    activeChildId = parseInt(activeChildId, 10);
+    activeChildData = await loadActiveChildData(currentUser.id, activeChildId);
+    if (!activeChildData) {
+        window.location.href = `children.html`;
+        return null;
     }
 
-    return data.session.user;
+    return currentUser;
   }
 
   // 初始化畫面
@@ -208,13 +309,12 @@
     if (!user) return;
     console.log("登入中的爸媽：", user.id, user.email);
     
-    // TODO: 這裡之後要從 Supabase 撈取孩子目前的總點數
-    // 為了讓 UI 可以動，這裡維持原有的假資料呼叫
-    renderPoints();
-    renderRewards();
+    // 載入並顯示點數
+    updatePointsDisplay();
   });
 </script>
 
 </body>
 </html>
+
 
