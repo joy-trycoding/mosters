@@ -1,456 +1,596 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>今日任務｜小怪獸挑戰王</title>
+  <meta charset="UTF-8" />
+  <title>孩子資料管理｜小怪獸挑戰王</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="styles.css" />
   <style>
-    :root {
-      --bg-cream: #FFFDF6;
-      --wood-main: #C68A56;
-      --wood-dark: #5A3B24;
-      --panel-bg: #FFFFFF;
-      --accent-yellow: #FFE680;
-      --panel-soft: #FFF4C8;
-    }
     body {
-      background: var(--bg-cream);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-      margin: 0;
-      padding: 12px;
+      background: #FFFDF6;
+      font-family: Arial, sans-serif;
+      padding: 16px;
     }
-    .page {
-      max-width: 640px;
-      margin: 0 auto;
-    }
+
     h1 {
-      color: var(--wood-main);
+      color: #C68A56;
       text-align: center;
-      margin: 8px 0 10px;
-      font-size: 22px;
+      margin-bottom: 8px;
     }
-    /* 導覽列（大拇指好按） */
+
+    .subtitle {
+      text-align: center;
+      font-size: 13px;
+      color: #777;
+      margin-bottom: 16px;
+    }
+
     .navbar {
       display: flex;
       gap: 8px;
-      margin-bottom: 12px;
+      margin-bottom: 16px;
       justify-content: center;
       flex-wrap: wrap;
     }
+
     .nav-btn {
-      padding: 8px 16px;
+      padding: 8px 14px;
       border-radius: 999px;
-      border: 1px solid var(--wood-main);
+      border: 1px solid #C68A56;
       background: #FFF4C8;
       font-size: 14px;
       text-decoration: none;
-      color: var(--wood-dark);
-      min-width: 90px;
-      text-align: center;
+      color: #5A3B24;
     }
+
     .nav-btn.active {
-      background: var(--wood-main);
+      background: #C68A56;
       color: white;
       font-weight: bold;
     }
 
-    /* 提示 / 今日資訊 */
-    .info-bar {
-      font-size: 13px;
-      color: #666;
+    .layout {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    @media (min-width: 900px) {
+      .layout {
+        flex-direction: row;
+        align-items: flex-start;
+      }
+      .col {
+        flex: 1;
+      }
+    }
+
+    .panel {
+      background: #FFFFFF;
+      border-radius: 12px;
+      border: 2px solid #C68A56;
+      padding: 16px;
       margin-bottom: 8px;
     }
 
-    /* 點數區塊：做成大卡片，容易一眼看到 */
-    #points-box {
-      margin: 0 0 12px;
-      padding: 14px;
-      background: var(--panel-soft);
-      border-radius: 12px;
-      border: 2px solid var(--wood-main);
+    .panel h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      color: #5A3B24;
+    }
+
+    .panel p {
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: #666;
+    }
+
+    .current-child {
+      font-size: 14px;
+      color: #5A3B24;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: #FFF8DC;
+      border: 1px dashed #C68A56;
+      margin-top: 4px;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: #888;
+    }
+
+    /* 子列表卡片 */
+    .child-card {
+      border-radius: 10px;
+      border: 1px solid #E0C7A0;
+      padding: 10px;
+      margin-bottom: 8px;
+      background: #FFFAED;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .child-card.active-child {
+        border-color: #FFC857;
+        box-shadow: 0 0 0 2px #FFC857;
+        background: #FFFEF5;
+    }
+
+    .child-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 8px;
-      font-size: 15px;
-    }
-    #points-box-main {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    #points {
-      font-weight: bold;
-      font-size: 20px;
-      color: var(--wood-dark);
-    }
-    .points-sub {
-      font-size: 12px;
-      color: #777;
+      margin-bottom: 4px;
     }
 
-    /* 任務卡片（手機單欄） */
-    #tasks {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    .task-card {
-      background: var(--panel-bg);
-      border: 1.5px solid var(--wood-main);
-      border-radius: 12px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    }
-    .task-header {
+    .child-name {
+      font-weight: bold;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
-    .task-icon {
-      font-size: 24px;
-      flex-shrink: 0;
+
+    .child-badge {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: #FFC857;
+      color: #5A3B24;
     }
-    .task-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--wood-dark);
-    }
-    .task-meta {
-      font-size: 13px;
+
+    .child-meta {
+      font-size: 12px;
       color: #555;
+      margin-top: 2px;
     }
-    .task-actions {
+
+    .child-actions {
       display: flex;
-      gap: 8px;
-      margin-top: 4px;
-      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: flex-end;
+      margin-top: 6px;
     }
+
     button {
-      padding: 10px 14px;
-      background: var(--accent-yellow);
+      padding: 6px 12px;
+      background: #FFE680;
       border: none;
       border-radius: 999px;
-      font-size: 15px;
-      cursor: pointer;
-      flex: 1;
-      min-width: 120px;
-    }
-    button.secondary {
-      background: #FFF4C8;
-      border: 1px solid var(--wood-main);
       font-size: 13px;
-    }
-    button:disabled {
-      background: #DDD;
-      color: #888;
-      cursor: not-allowed;
+      cursor: pointer;
+      transition: background 0.2s;
     }
 
-    .empty-hint {
+    button.small {
+      font-size: 12px;
+      padding: 4px 10px;
+    }
+
+    button.danger {
+      background: #F4B0A8;
+    }
+
+    button.primary {
+      background: #FFC857;
+    }
+    
+    button:hover:not(:disabled) {
+      background: #FFD966;
+    }
+
+    /* 表單 */
+    .form-row {
+      margin-bottom: 10px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 3px;
+      color: #5A3B24;
+    }
+
+    input[type="text"],
+    input[type="date"] {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 7px 9px;
+      border-radius: 8px;
+      border: 1px solid #C68A56;
       font-size: 14px;
-      color: #777;
-      text-align: center;
-      margin-top: 24px;
-      line-height: 1.6;
-    }
-    /* 任務完成動畫模組樣式 */
-    .completion-modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.6);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s ease;
-    }
-    .completion-modal.visible {
-        opacity: 1;
-        pointer-events: all;
-    }
-    .modal-content {
-        background: linear-gradient(135deg, #FFFCF4, #FFF4C8);
-        border: 4px solid var(--wood-main);
-        border-radius: 20px;
-        padding: 30px;
-        text-align: center;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        max-width: 80%;
-        position: relative;
-        transform: scale(0.8);
-        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    .completion-modal.visible .modal-content {
-        transform: scale(1);
-    }
-    .congrats-text {
-        color: var(--wood-dark);
-        font-size: 24px;
-        font-weight: bold;
-        margin-bottom: 10px;
-    }
-    .points-added {
-        color: #E74C3C;
-        font-size: 36px;
-        font-weight: bold;
-        margin-bottom: 20px;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-    }
-    .monster-anim {
-        width: 100px;
-        height: 100px;
-        margin: 0 auto 10px;
-    }
-    .monster-anim img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        /* 讓小怪獸跳起來的動畫 */
-        animation: jump 0.6s ease-in-out infinite alternate; 
-    }
-    @keyframes jump {
-        0% { transform: translateY(0) scale(1); }
-        100% { transform: translateY(-10px) scale(1.05); }
-    }
-    .close-btn {
-        background: var(--wood-dark);
-        color: white;
-        padding: 8px 16px;
-        border-radius: 999px;
-        font-size: 16px;
-        margin-top: 15px;
-    }
-    .loading-audio {
-        font-size: 12px;
-        color: #777;
-        margin-top: 10px;
+      background: #FFFCF4;
     }
 
+    .edit-indicator {
+      font-size: 12px;
+      color: #B35B3E;
+      margin-bottom: 8px;
+    }
 
-    @media (max-width: 480px) {
-      h1 {
-        font-size: 20px;
-      }
-      button {
-        font-size: 14px;
-      }
-      .task-actions {
-        flex-direction: column;
-      }
+    .error-message {
+      font-size: 13px;
+      color: #C0392B;
+      margin-top: 4px;
+      min-height: 18px;
+    }
+
+    .info-message {
+      font-size: 13px;
+      color: #5A3B24;
+      margin-top: 4px;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.85);
+      color: #fff;
+      padding: 12px 22px;
+      border-radius: 20px;
+      font-size: 15px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 9999;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+
+    .hidden {
+      display: none;
     }
   </style>
 </head>
 <body>
-<div class="page">
-
-  <h1>今日任務</h1>
-
-  <!-- 導覽列 -->
+  <!-- 導覽列：多一個「孩子資料」 -->
   <div class="navbar">
-      <a href="index.html" class="nav-btn">首頁</a>
-      <a href="dashboard.html" class="nav-btn active">今日任務</a>
-      <a href="setting.html" class="nav-btn">任務設定</a>
-      <a href="rewards.html" class="nav-btn">獎勵商城</a>
-      <a href="monsters.html" class="nav-btn">小怪獸森林</a>
-      <a href="story.html" class="nav-btn">挑戰王故事</a>    
-      <a href="children.html" class="nav-btn">孩子資料</a> 
+    <a href="index.html" class="nav-btn">首頁</a>
+    <a href="dashboard.html" class="nav-btn">今日任務</a>
+    <a href="setting.html" class="nav-btn">任務設定</a>
+    <a href="rewards.html" class="nav-btn">獎勵商城</a>
+    <a href="monsters.html" class="nav-btn">小怪獸森林</a>
+    <a href="story.html" class="nav-btn">挑戰王故事</a>
+    <a href="children.html" class="nav-btn active">孩子資料</a>
   </div>
 
-  <div class="info-bar" id="today-info"></div>
+  <h1>孩子資料管理</h1>
+  <div class="subtitle">【本機測試模式】所有資料都儲存在這個瀏覽器，換裝置會消失。</div>
 
-  <div id="points-box">
-    <div id="points-box-main">
-      <!-- 這裡將會顯示目前操作中的孩子暱稱 -->
-      <span id="child-display-name">請選擇孩子</span>
-      <span><strong>目前總點數</strong></span>
-      <span id="points">0</span>
-      <span class="points-sub">累積點數可兌換獎勵或孵化怪獸</span>
-    </div>
-  </div>
+  <div class="layout">
+    <!-- 左：目前孩子列表 -->
+    <div class="col">
+      <div class="panel" id="children-list-panel">
+        <h2>目前孩子</h2>
+        <p>點選「設為目前小怪獸」後，所有功能頁面都會切換到這位孩子的紀錄。</p>
 
-  <div id="tasks"></div>
-
-  <div id="empty-message" class="empty-hint" style="display:none;">
-    今天沒有安排任務。<br>
-    可以到「任務設定」頁面，幫小朋友新增或調整每日任務喔 🍋
-  </div>
-</div>
-
-<!-- 任務完成動畫模組 -->
-<div id="completion-modal" class="completion-modal">
-    <div class="modal-content">
-        <div class="monster-anim">
-            <img src="https://placehold.co/100x100/FFC857/5A3B24?text=小果吉👍" alt="小果吉正在歡呼">
+        <div id="current-child-info" class="current-child">
+          目前沒有選擇的孩子，請從下方清單選擇「設為目前小怪獸」。
         </div>
-        <div class="congrats-text" id="modal-congrats-text">太棒了！你完成了任務！</div>
-        <div class="points-added" id="modal-points-added">+10 分</div>
-        <div id="loading-audio" class="loading-audio" style="display:none;">🔊 語音鼓勵生成中...</div>
-        <audio id="tts-audio" style="display:none;"></audio>
-        <button id="modal-close-btn" class="close-btn">確認</button>
+
+        <div id="children-list" style="margin-top:12px;"></div>
+      </div>
     </div>
-</div>
 
-<script>
-  // 移除 Supabase 腳本
-  
-  // LocalStorage Key
-  const CHILDREN_STORAGE_KEY = "monsters_children_local"; 
-  const TASK_CONFIG_KEY = "monsters_tasks_config_v1";
-  const ACTIVE_CHILD_KEY = "monsters_active_child_id";
-  const DEFAULT_ICON = "⭐";
+    <!-- 右：新增 / 編輯孩子 -->
+    <div class="col">
+      <div class="panel" id="edit-section">
+        <h2>新增 / 編輯孩子資料</h2>
+        <p>至少需要填寫「孩子名字」，這是本地端模擬儲存的資料。</p>
 
-  let childrenData = []; // 本地端的孩子列表
-  let activeChildData = null; // 當前孩子的資料 (包含 total_points)
-  
-  // 預設任務
-  const defaultTasks = [ 
-    { id: 1, name: "起床不賴床", points: 10, schedule: "everyday", icon: "⏰", ttsText: "起床不賴床，小勇士出發囉！" },
-    { id: 2, name: "自己刷牙", points: 10, schedule: "everyday", icon: "🪥", ttsText: "自己刷牙，牙齒亮晶晶。" },
-    { id: 3, name: "完成學校作業", points: 20, schedule: "weekdays", icon: "📚", ttsText: "先完成學校作業，再開心玩耍。" },
-    { id: 4, name: "整理書包", points: 10, schedule: "weekdays", icon: "🎒", ttsText: "整理書包，明天才不會忘東西。" },
-    { id: 5, name: "收拾玩具", points: 10, schedule: "everyday", icon: "🧸", ttsText: "玩完玩具，一起把小夥伴們送回家。" }
-  ];
+        <div id="edit-indicator" class="edit-indicator" style="display:none;"></div>
 
-  // --- 本地數據載入/保存 ---
-  function loadLocalData() {
-    // 1. 載入孩子列表
-    const savedChildren = localStorage.getItem(CHILDREN_STORAGE_KEY);
-    try {
-        childrenData = savedChildren ? JSON.parse(savedChildren) : [];
-    } catch { childrenData = []; }
+        <div class="form-row">
+          <label for="child-name">孩子名字（必填）</label>
+          <input id="child-name" type="text" placeholder="例如：小安、小樂、沛沛" />
+        </div>
+
+        <div class="form-row">
+          <label for="child-nickname">暱稱（選填，孩子看到的名字）</label>
+          <input id="child-nickname" type="text" placeholder="例如：勇敢小戰士、森林探險家" />
+          <div class="hint">之後在任務頁可以用暱稱和孩子說話，更有代入感。</div>
+        </div>
+
+        <div class="form-row">
+          <label for="child-birthday">生日（選填）</label>
+          <input id="child-birthday" type="date" />
+        </div>
+
+        <div class="form-row" style="display:flex; gap:8px; margin-top:4px;">
+          <button id="btn-save-child" class="primary">＋ 新增孩子</button>
+          <button id="btn-cancel-edit" type="button" class="small" style="display:none;">取消編輯</button>
+        </div>
+
+        <div id="form-error" class="error-message"></div>
+        <div id="form-info" class="info-message"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast 提示 -->
+  <div id="toast" class="toast hidden">已儲存</div>
+
+  <script>
+    // 移除 Supabase 腳本
     
-    // 2. 確定當前活躍孩子資料
-    const activeId = parseInt(localStorage.getItem(ACTIVE_CHILD_KEY), 10);
-    activeChildData = childrenData.find(c => c.id === activeId) || null;
-    
-    // 3. 如果沒有孩子，強制跳轉到 children.html
-    if (childrenData.length === 0) {
-        window.location.href = 'children.html';
-        return false;
+    // Key 和預設資料 (儲存在 localStorage)
+    const CHILDREN_STORAGE_KEY = "monsters_children_local"; 
+    const ACTIVE_CHILD_KEY = "monsters_active_child_id";
+
+    let children = [];
+    let editingChildId = null;
+
+    const childrenListEl = document.getElementById("children-list");
+    const currentChildInfoEl = document.getElementById("current-child-info");
+    const editIndicatorEl = document.getElementById("edit-indicator");
+    const formErrorEl = document.getElementById("form-error");
+    const formInfoEl = document.getElementById("form-info");
+
+    const nameInput = document.getElementById("child-name");
+    const nicknameInput = document.getElementById("child-nickname");
+    const birthdayInput = document.getElementById("child-birthday");
+    const saveBtn = document.getElementById("btn-save-child");
+    const cancelEditBtn = document.getElementById("btn-cancel-edit");
+
+    // Toast (簡化)
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.remove("hidden");
+      void toast.offsetWidth;
+      toast.classList.add("show");
+      setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => {
+          toast.classList.add("hidden");
+        }, 300);
+      }, 2000);
     }
-    // 4. 如果沒有活躍孩子，但有孩子列表，也跳轉到 children.html 讓使用者選擇
-    if (!activeChildData && childrenData.length > 0) {
-        window.location.href = 'children.html';
-        return false;
+
+    function showError(msg) {
+      formErrorEl.textContent = msg || "";
     }
-    return true; // 準備就緒
-  }
-  
-  function saveChildrenData() {
-      localStorage.setItem(CHILDREN_STORAGE_KEY, JSON.stringify(childrenData));
-  }
 
-  function loadTaskConfig() {
-    const saved = localStorage.getItem(TASK_CONFIG_KEY);
-    if (!saved) return defaultTasks.slice();
-    try {
-      const parsed = JSON.parse(saved);
-      return parsed;
-    } catch (e) {
-      return defaultTasks.slice();
+    function showInfo(msg) {
+      formInfoEl.textContent = msg || "";
     }
-  }
 
-  // --- 任務邏輯 ---
-  function updatePointsDisplay() {
-      document.getElementById("points").textContent = activeChildData ? activeChildData.total_points : 0;
-      const displayName = activeChildData ? (activeChildData.nickname || activeChildData.name) : "請選擇孩子";
-      document.getElementById("child-display-name").textContent = `目前小怪獸：${displayName}`;
-  }
-
-  function isTaskForToday(task) { /* ... 保持原樣 ... */ return true;}
-  function shouldShowTaskToday(task) { /* ... 保持原樣 ... */ return true;}
-  function renderTodayInfo() { /* ... 保持原樣 ... */ }
-  function renderTasks() { /* ... 保持原樣 ... */ }
-  function showCompletionAnimation(taskName, points, ttsText, isHatching) { /* ... 保持原樣 ... */ }
-  function playTaskTTS(id) { /* ... 保持原樣 ... */ }
-  
-  // ★ 任務完成的核心邏輯：更新 LocalStorage 點數
-  async function completeTask(id) {
-    const t = todayTasks.find(x => x.id === id);
-    if (!t || t.done || !activeChildData) return;
-
-    t.done = true;
-    const pointsAdded = Number(t.points) || 0;
-    
-    // 1. 更新本地資料
-    const newTotalPoints = activeChildData.total_points + pointsAdded;
-    const currentMonsterCount = activeChildData.monsters_collected ? activeChildData.monsters_collected.length : 0;
-    const potentialMonsterCount = Math.floor(newTotalPoints / 100);
-    const isHatching = potentialMonsterCount > currentMonsterCount;
-    
-    activeChildData.total_points = newTotalPoints;
-    
-    // 2. 寫回 LocalStorage
-    const childIndex = childrenData.findIndex(c => c.id === activeChildData.id);
-    if (childIndex !== -1) {
-        childrenData[childIndex].total_points = newTotalPoints;
-        saveChildrenData();
-    }
-    
-    // 3. 更新 UI
-    updatePointsDisplay();
-    renderTasks();
-    
-    // 4. 顯示動畫
-    showCompletionAnimation(t.name, pointsAdded, t.ttsText, isHatching); 
-
-    // 5. 如果是 one-time 任務，標記為已使用 (這裡需要更細緻的 LocalStorage 處理，目前先跳過)
-    // 保持 LocalStorage 任務不變，避免複雜的 LocalStorage 狀態管理
-  }
-
-  // 初始化
-  document.addEventListener("DOMContentLoaded", async () => {
-    // 載入 LocalData，如果沒有孩子會跳轉到 children.html
-    const isReady = loadLocalData();
-    if (!isReady) return; 
-
-    renderTodayInfo();
-    updatePointsDisplay();
-
-    // 載入任務設定
-    const fullConfig = loadTaskConfig();
-
-    // 挑出「今天要顯示的任務」
-    const todayTasks = fullConfig
-      .filter(shouldShowTaskToday)
-      .map(t => ({
-        ...t,
-        done: false
-      }));
-
-    document.getElementById("tasks").onclick = function (e) {
-      const btn = e.target.closest("button");
-      if (!btn) return;
-      const taskId = parseInt(btn.getAttribute("data-id"), 10);
-      const action = btn.getAttribute("data-action");
-      
-      if (action === "complete") {
-        completeTask(taskId);
-      } else if (action === "tts") {
-        // playTaskTTS(taskId); // TTS 函數保持原樣
+    // --- 本地端數據操作 ---
+    function loadChildren() {
+      const saved = localStorage.getItem(CHILDREN_STORAGE_KEY);
+      try {
+        children = saved ? JSON.parse(saved) : [];
+      } catch {
+        children = [];
       }
-    };
-    
-    renderTasks(todayTasks); // 重新呼叫 renderTasks 函數，傳入 todayTasks
+      renderChildrenList();
+      renderCurrentChild();
+    }
 
-    // 由於函數體積過大，TTS 相關的函數實作已從上一段程式碼中移除以保持簡潔。
-    // 在實際文件中，請確保它們是完整的。
-  });
-</script>
+    function saveChildren() {
+      localStorage.setItem(CHILDREN_STORAGE_KEY, JSON.stringify(children));
+      loadChildren(); // 重新載入並渲染
+    }
+
+    // 讀取目前活躍孩子的 ID
+    function getActiveChildId() {
+      const id = localStorage.getItem(ACTIVE_CHILD_KEY);
+      // 確保回傳數字或 null
+      return id ? parseInt(id, 10) : null;
+    }
+
+    // 設定目前活躍孩子的 ID
+    function setActiveChildId(childId) {
+      if (childId === null) {
+        localStorage.removeItem(ACTIVE_CHILD_KEY);
+      } else {
+        localStorage.setItem(ACTIVE_CHILD_KEY, childId);
+      }
+      renderCurrentChild();
+      renderChildrenList();
+    }
+    // -------------------------
+
+    function renderCurrentChild() {
+      const activeId = getActiveChildId();
+      const activeChild = children.find(c => c.id === activeId);
+
+      if (!activeChild) {
+        currentChildInfoEl.textContent =
+          "目前沒有選擇的孩子，請從下方清單選擇「設為目前小怪獸」。";
+        return;
+      }
+      const displayName = activeChild.nickname || activeChild.name;
+      currentChildInfoEl.textContent =
+        "目前操作中的小怪獸是：「" + displayName + "」，任務點數與紀錄都會記在這位孩子身上。";
+    }
+
+    function renderChildrenList() {
+      childrenListEl.innerHTML = "";
+
+      if (!children.length) {
+        childrenListEl.innerHTML =
+          '<p class="hint">目前還沒有建立任何孩子資料，請在右側新增一位。</p>';
+        return;
+      }
+
+      const activeId = getActiveChildId();
+
+      children.forEach((child) => {
+        const card = document.createElement("div");
+        const isActive = activeId === child.id;
+
+        card.className = `child-card ${isActive ? 'active-child' : ''}`;
+
+        const mainName = child.name;
+        const nick = child.nickname || "";
+        const birthdayText = child.birthday
+          ? "生日：" + child.birthday
+          : "生日：未填寫";
+
+        card.innerHTML = `
+          <div class="child-header">
+            <div class="child-name">
+              <span>🧒</span>
+              <span>${mainName}</span>
+              ${
+                nick
+                  ? `<span style="font-size:11px;color:#777;">（暱稱：${nick}）</span>`
+                  : ""
+              }
+              ${
+                isActive
+                  ? '<span class="child-badge">目前小怪獸</span>'
+                  : ""
+              }
+            </div>
+          </div>
+          <div class="child-meta">點數：${child.total_points || 0} | ${birthdayText}</div>
+          <div class="child-actions">
+            <button class="small" onclick="setAsActive(${child.id})">
+              ${
+                isActive ? "重新設為目前小怪獸" : "設為目前小怪獸"
+              }
+            </button>
+            <button class="small" onclick="startEditChild(${child.id})">編輯</button>
+            <button class="danger small" onclick="deleteChild(${child.id})">刪除</button>
+          </div>
+        `;
+
+        childrenListEl.appendChild(card);
+      });
+    }
+
+    // 提供給 HTML onclick 使用：設為目前小怪獸
+    window.setAsActive = function (childId) {
+      setActiveChildId(childId);
+      showToast("已切換目前小怪獸");
+    };
+
+    // 編輯孩子
+    window.startEditChild = function (childId) {
+      const child = children.find((c) => c.id === childId);
+      if (!child) return;
+
+      editingChildId = child.id;
+
+      nameInput.value = child.name || "";
+      nicknameInput.value = child.nickname || "";
+      birthdayInput.value = child.birthday || "";
+
+      editIndicatorEl.textContent = "目前正在編輯：「" + (child.nickname || child.name) + "」";
+      editIndicatorEl.style.display = "block";
+
+      saveBtn.textContent = "儲存孩子資料";
+      cancelEditBtn.style.display = "inline-block";
+
+      showError("");
+      showInfo("");
+
+      document
+        .getElementById("edit-section")
+        .scrollIntoView({ behavior: "smooth" });
+    };
+
+    window.deleteChild = function (childId) {
+      const target = children.find((c) => c.id === childId);
+      if (!target) return;
+
+      if (!confirm("確定要刪除「" + (target.nickname || target.name) + "」嗎？")) return;
+
+      // 刪除本地資料
+      children = children.filter(c => c.id !== childId);
+      
+      // 如果刪掉的是目前 active 的那位，就清除 active
+      if (getActiveChildId() === childId) {
+        setActiveChildId(null);
+      }
+
+      saveChildren(); // 儲存並重新載入
+      showToast("已刪除孩子");
+    };
+
+    function resetForm() {
+      editingChildId = null;
+      nameInput.value = "";
+      nicknameInput.value = "";
+      birthdayInput.value = "";
+      saveBtn.textContent = "＋ 新增孩子";
+      cancelEditBtn.style.display = "none";
+      editIndicatorEl.style.display = "none";
+      showError("");
+      showInfo("");
+    }
+
+    async function handleSaveChild() {
+      showError("");
+      showInfo("");
+
+      const name = nameInput.value.trim();
+      const nickname = nicknameInput.value.trim();
+      const birthday = birthdayInput.value;
+
+      if (!name) {
+        showError("請填寫孩子名字");
+        return;
+      }
+
+      if (editingChildId === null) {
+        // 新增
+        const newId = children.length > 0 ? Math.max(...children.map(c => c.id)) + 1 : 1;
+
+        const newChild = {
+          id: newId,
+          name,
+          nickname: nickname || null,
+          birthday: birthday || null,
+          total_points: 0, // 初始點數為 0
+          monsters_collected: ['m01'], // 預設給第一個怪獸
+        };
+
+        children.push(newChild);
+        
+        // 如果這是第一個孩子，自動設為 active
+        if (children.length === 1) {
+            setActiveChildId(newChild.id);
+        }
+        
+        saveChildren();
+        resetForm();
+        showToast("已新增孩子");
+
+      } else {
+        // 編輯
+        const index = children.findIndex((c) => c.id === editingChildId);
+        if (index !== -1) {
+            children[index].name = name;
+            children[index].nickname = nickname || null;
+            children[index].birthday = birthday || null;
+        }
+
+        saveChildren();
+        resetForm();
+        showToast("已儲存孩子資料");
+      }
+    }
+
+    // 初始化
+    document.addEventListener("DOMContentLoaded", () => {
+      loadChildren();
+      saveBtn.addEventListener("click", handleSaveChild);
+      cancelEditBtn.addEventListener("click", resetForm);
+    });
+  </script>
 </body>
 </html>
+
 
 
 
