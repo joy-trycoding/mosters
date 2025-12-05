@@ -520,16 +520,16 @@
       .addEventListener("click", resetFormToCreateMode);
   });
 </script>
-<script src="[https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2](https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2)"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  // 統一的 Supabase 設定 (使用您 login.html 中的真實金鑰)
-  const SUPABASE_URL = "[https://reunrobejvodzkhbtspp.supabase.co](https://reunrobejvodzkhbtspp.supabase.co)";
+  // ★ 修正：統一的 Supabase 設定
+  const SUPABASE_URL = "https://reunrobejvodzkhbtspp.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJldW5yb2JlanZvZHpraGJ0c3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMzc1MDEsImV4cCI6MjA3OTgxMzUwMX0.4Tfa94upcxp2wfnBUwBtFJl7H1NdnY3uQxLRxnjBrRE";
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const ACTIVE_CHILD_KEY = "monsters_active_child_id"; // 儲存活躍孩子 ID
 
-  // 複製自 dashboard.html 的 checkActiveChildAndRedirect 邏輯
-  async function checkActiveChildAndRedirect(user) {
+  // 檢查 Active Child ID 是否存在
+  async function checkActiveChildAndRedirect() {
       const activeChildId = localStorage.getItem(ACTIVE_CHILD_KEY);
       
       // 1. 如果沒有 Active Child ID，強制跳轉到 children.html
@@ -574,5 +574,6 @@
 
 </body>
 </html>
+
 
 
