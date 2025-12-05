@@ -135,24 +135,21 @@
 <div id="toast" class="toast hidden">已儲存</div>
 
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  // ★ 修正：統一的 Supabase 設定
-  const SUPABASE_URL = "https://reunrobejvodzkhbtspp.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJldW5yb2JlanZvZHpraGJ0c3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMzc1MDEsImV4cCI6MjA3OTgxMzUwMX0.4Tfa94upcxp2wfnBUwBtFJl7H1NdnY3uQxLRxnjBrRE";
-  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  // 移除 Supabase 腳本
   
-  const ACTIVE_CHILD_KEY = "monsters_active_child_id"; // 儲存活躍孩子 ID
-  let currentUser = null;
-  let activeChildId = null;
-  let activeChildData = null; // 當前孩子的資料 (包含 total_points)
+  const CHILDREN_STORAGE_KEY = "monsters_children_local"; 
+  const ACTIVE_CHILD_KEY = "monsters_active_child_id";
+  
+  let childrenData = [];
+  let activeChildData = null; 
 
   // Toast
   function showToast(message) {
     const toast = document.getElementById("toast");
     toast.textContent = message;
     toast.classList.remove("hidden");
-    void toast.offsetWidth; // reflow
+    void toast.offsetWidth; 
     toast.classList.add("show");
     setTimeout(() => {
       toast.classList.remove("show");
@@ -162,7 +159,33 @@
     }, 2000);
   }
   
-  // ---- 假資料：之後會從後端/資料庫抓 ----
+  // ---- LocalStorage 數據操作 ----
+  function loadLocalData() {
+    const savedChildren = localStorage.getItem(CHILDREN_STORAGE_KEY);
+    try {
+        childrenData = savedChildren ? JSON.parse(savedChildren) : [];
+    } catch { childrenData = []; }
+    
+    const activeId = parseInt(localStorage.getItem(ACTIVE_CHILD_KEY), 10);
+    activeChildData = childrenData.find(c => c.id === activeId) || null;
+    
+    if (!activeChildData && childrenData.length > 0) {
+        window.location.href = 'children.html';
+        return false;
+    }
+    if (childrenData.length === 0) {
+        window.location.href = 'children.html';
+        return false;
+    }
+    return true; 
+  }
+  
+  function saveChildrenData() {
+      localStorage.setItem(CHILDREN_STORAGE_KEY, JSON.stringify(childrenData));
+  }
+  // -------------------------
+
+  // ---- 假獎勵資料 ----
   const rewards = [
     { id: 1, name: '冰淇淋一份', need: 300 },
     { id: 2, name: 'Switch 30 分鐘', need: 350 },
@@ -181,7 +204,6 @@
       document.getElementById("points").textContent = currentPoints;
       document.getElementById("child-display-name").textContent = displayName;
 
-      // 刷新獎勵列表，因為點數可能更新了
       renderRewards(currentPoints);
   }
 
@@ -212,105 +234,39 @@
   }
 
   async function redeemReward(rewardId, cost) {
-    if (!currentUser || !activeChildData) {
+    if (!activeChildData) {
         showToast("請先選擇孩子！");
         return;
     }
     
     if (activeChildData.total_points < cost) {
-      // TODO: 替換 alert
-      alert(`點數還不夠，還差 ${cost - activeChildData.total_points} 分喔！`);
+      showToast(`點數還不夠，還差 ${cost - activeChildData.total_points} 分喔！`);
       return;
     }
 
-    // TODO: 這裡要換成自訂 UI 提示，避免 alert/confirm
-    const confirmRedeem = confirm(
-      `確定要兌換獎勵嗎？\n這會花費 ${cost} 分。`
-    );
-    if (!confirmRedeem) return;
+    if (!confirm(`確定要兌換獎勵嗎？\n這會花費 ${cost} 分。`)) return;
 
-    // 1. 扣點數並更新 Supabase
+    // 1. 扣點數並更新 LocalStorage
     const newTotalPoints = activeChildData.total_points - cost;
+    activeChildData.total_points = newTotalPoints;
     
-    const { error } = await supabaseClient
-        .from('children')
-        .update({ total_points: newTotalPoints })
-        .eq('id', activeChildId)
-        .eq('parent_id', currentUser.id);
-
-    if (error) {
-        console.error("兌換點數失敗", error);
-        showToast("兌換失敗，請檢查網路！");
-        return;
+    const childIndex = childrenData.findIndex(c => c.id === activeChildData.id);
+    if (childIndex !== -1) {
+        childrenData[childIndex].total_points = newTotalPoints;
+        saveChildrenData(); 
     }
 
     // 2. 更新前端狀態
-    activeChildData.total_points = newTotalPoints;
     updatePointsDisplay();
-    
-    // TODO: 這裡要新增記錄兌換歷史的邏輯
     
     showToast(`已兌換成功！記得給小朋友獎勵喔 😊`);
   }
 
-  // ★ 載入當前孩子資料
-  async function loadActiveChildData(userId, childId) {
-       const { data, error } = await supabaseClient
-        .from("children")
-        .select("id, name, nickname, total_points, monsters_collected")
-        .eq("id", childId)
-        .eq("parent_id", userId)
-        .single();
-        
-        if (error || !data) {
-            console.error("載入活躍孩子資料失敗", error);
-            localStorage.removeItem(ACTIVE_CHILD_KEY); 
-            return null;
-        }
-        return data;
-  }
-
-  // 檢查登入狀態並導向
-  async function requireAuth() {
-    const { data } = await supabaseClient.auth.getSession();
-    
-    if (!data.session || !data.session.user) {
-      // 登入狀態遺失，導向登入頁
-      const path = window.location.pathname;
-      const fileName = path.substring(path.lastIndexOf("/") + 1) || "rewards.html";
-      const redirect = encodeURIComponent(fileName);
-      window.location.href = `login.html?redirect=${redirect}`;
-      return null;
-    }
-    
-    currentUser = data.session.user;
-    activeChildId = localStorage.getItem(ACTIVE_CHILD_KEY); // 從 localStorage 讀取
-    
-    if (!activeChildId) {
-        const path = window.location.pathname;
-        const fileName = path.substring(path.lastIndexOf("/") + 1) || "rewards.html";
-        const redirect = encodeURIComponent(fileName);
-        window.location.href = `children.html?redirect=${redirect}`;
-        return null;
-    }
-    
-    activeChildId = parseInt(activeChildId, 10);
-    activeChildData = await loadActiveChildData(currentUser.id, activeChildId);
-    if (!activeChildData) {
-        window.location.href = `children.html`;
-        return null;
-    }
-
-    return currentUser;
-  }
-
   // 初始化畫面
   document.addEventListener("DOMContentLoaded", async () => {
-    const user = await requireAuth();
-    if (!user) return;
-    console.log("登入中的爸媽：", user.id, user.email);
-    
-    // 載入並顯示點數
+    const isReady = loadLocalData();
+    if (!isReady) return;
+
     updatePointsDisplay();
   });
 </script>
