@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <title>爸媽登入｜小怪獸挑戰王</title>
+  <title>爸媽登入｜（登入功能已暫時關閉）</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="styles.css" />
   <style>
@@ -10,6 +10,7 @@
       background: #FFFDF6;
       font-family: Arial, sans-serif;
       padding: 20px;
+      text-align: center;
     }
     .login-container {
       max-width: 420px;
@@ -17,377 +18,50 @@
       background: #FFFFFF;
       border-radius: 16px;
       border: 2px solid #C68A56;
-      padding: 20px 18px 24px;
+      padding: 30px 18px 30px;
     }
     h1 {
       text-align: center;
-      color: #C68A56;
+      color: #C0392B;
       margin-bottom: 4px;
     }
     .subtitle {
       text-align: center;
-      font-size: 13px;
-      color: #777;
-      margin-bottom: 16px;
-    }
-    label {
-      display: block;
-      font-size: 13px;
-      margin-bottom: 4px;
-      color: #5A3B24;
-    }
-    input {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 8px 10px;
-      border-radius: 8px;
-      border: 1px solid #C68A56;
-      margin-bottom: 10px;
-      background: #FFFCF4;
       font-size: 14px;
+      color: #777;
+      margin-bottom: 20px;
+      line-height: 1.6;
     }
-    button {
-      width: 100%;
-      padding: 10px;
-      border-radius: 999px;
-      border: none;
-      background: #FFC857;
-      font-size: 15px;
-      font-weight: bold;
-      color: #5A3B24;
-      cursor: pointer;
-      margin-top: 4px;
-      transition: background 0.2s;
-    }
-    button:hover:not(:disabled) {
-        background: #FFD966;
-    }
-    button:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-    button.secondary {
-      background: #FFE7A0;
-    }
-    /* 訊息區域 */
-    #message-box {
-      font-size: 13px;
-      margin-top: 8px;
-      min-height: 18px;
-      padding: 6px;
-      border-radius: 6px;
-      text-align: center;
-    }
-    .error-message {
-      color: #C0392B;
-      background-color: #FEEEEE;
-      border: 1px solid #C0392B;
-    }
-    .info-message {
-      color: #27AE60;
-      background-color: #E8F8F5;
-      border: 1px solid #27AE60;
-    }
-    .small-text {
-      font-size: 12px;
-      color: #888;
-      margin-top: 6px;
-      text-align: center;
+    .btn-home {
+        display: inline-block;
+        padding: 10px 20px;
+        border-radius: 999px;
+        border: none;
+        background: #FFC857;
+        font-size: 15px;
+        font-weight: bold;
+        color: #5A3B24;
+        cursor: pointer;
+        margin-top: 10px;
+        text-decoration: none;
     }
   </style>
 </head>
 <body>
   <div class="login-container">
-    <h1>爸媽登入</h1>
-    <div class="subtitle">設定任務、管理點數、查看兌換紀錄</div>
-
-    <label for="email">Email（登入帳號）</label>
-    <input type="email" id="email" placeholder="you@example.com" />
-
-    <label for="password">密碼</label>
-    <input type="password" id="password" placeholder="至少 8 碼" /> <!-- 提示改為 8 碼 -->
-
-    <button id="btn-login">登入</button>
-    <button id="btn-signup" class="secondary">還沒有帳號？建立新帳號</button>
-
-    <div id="message-box" class="error-message" style="display:none;"></div>
-    <div class="small-text">登入成功後，系統會記住你的狀態，下次可以直接開啟任務頁面。</div>
+    <h1>⚠ 登入/註冊功能已暫時移除</h1>
+    <div class="subtitle">
+        為避免跳轉迴圈影響開發，所有頁面的帳號驗證已暫時關閉。<br>
+        您可以直接前往功能頁面，系統會以**本機端儲存 (localStorage)** 的資料來模擬運作。
+    </div>
+    <a href="index.html" class="btn-home">前往網站首頁</a>
+    <div class="subtitle" style="margin-top: 30px; font-size: 12px; color: #aaa;">
+        (未來要恢復多人使用功能時，請記得重新實作 Supabase 驗證邏輯)
+    </div>
   </div>
-
-  <!-- Supabase JS CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    // 統一的 Supabase 設定 (請確認這是您專案的真實 Key)
-    const SUPABASE_URL = "https://reunrobejvodzkhbtspp.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJldW5yb2JlanZvZHpraGJ0c3BwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMzc1MDEsImV4cCI6MjA3OTgxMzUwMX0.4Tfa94upcxp2wfnBUwBtFJl7H1NdnY3uQxLRxnjBrRE";
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
-    const messageBoxEl = document.getElementById("message-box");
-    const btnLogin = document.getElementById("btn-login");
-    const btnSignup = document.getElementById("btn-signup");
-    
-    // 密碼至少需要 8 個字元 (提高標準以解決潛在的後台配置問題)
-    const MIN_PASSWORD_LENGTH = 8; 
-
-    // 解析 URL 上的 redirect 參數
-    const urlParams = new URLSearchParams(window.location.search);
-    const redirectParam = urlParams.get("redirect");
-
-    const ALLOWED_REDIRECTS = [
-      "index.html",
-      "dashboard.html",
-      "setting.html",
-      "rewards.html",
-      "monsters.html",
-      "story.html",
-      "children.html"
-    ];
-
-    function showMessage(msg, type = "error") {
-      messageBoxEl.textContent = msg || "";
-      messageBoxEl.className = "";
-      messageBoxEl.style.display = msg ? "block" : "none";
-      if (msg) {
-        messageBoxEl.classList.add(type === "error" ? "error-message" : "info-message");
-      }
-    }
-
-    function toggleButtons(disabled) {
-        btnLogin.disabled = disabled;
-        btnSignup.disabled = disabled;
-    }
-
-    function getSafeRedirectTarget() {
-      if (!redirectParam) return null;
-      if (ALLOWED_REDIRECTS.includes(redirectParam)) {
-        return redirectParam;
-      }
-      return null;
-    }
-
-    // 確保 profiles 有一筆對應資料（若沒有就建立）
-    async function ensureProfile(user) {
-      if (!user) return;
-      const userId = user.id;
-      const email = user.email;
-
-      const { data } = await supabaseClient
-        .from("profiles")
-        .select("id")
-        .eq("id", userId)
-        .maybeSingle();
-
-      if (!data) {
-        const { error: insertErr } = await supabaseClient.from("profiles").insert({
-          id: userId,
-          email,
-          name: email,
-        });
-        if (insertErr) {
-          console.error("建立 profile 失敗：", insertErr);
-        }
-      }
-    }
-
-    // 登入後共同流程：檢查是否有孩子，並導向
-    async function handlePostLoginRedirect(user) {
-      if (!user) return;
-
-      await ensureProfile(user);
-
-      let hasChild = false;
-      const { data: childrenRows, error: childrenError } = await supabaseClient
-        .from("children")
-        .select("id")
-        .eq("parent_id", user.id)
-        .limit(1);
-
-      if (!childrenError && childrenRows && childrenRows.length > 0) {
-        hasChild = true;
-      }
-
-      const safeRedirect = getSafeRedirectTarget();
-      let targetPage = safeRedirect || "dashboard.html";
-
-      // 1. 若還沒有任何孩子 → 先去 children.html 做設定
-      if (!hasChild) {
-        window.location.href = `children.html?redirect=${encodeURIComponent(targetPage)}`;
-        return;
-      }
-
-      // 2. 若已經有孩子 → 回原本想去的頁面，或預設 dashboard
-      window.location.href = targetPage;
-    }
-
-    // ★ 密碼長度驗證函數
-    function validatePassword(password) {
-        if (password.length < MIN_PASSWORD_LENGTH) {
-            showMessage(`密碼長度不足！請輸入至少 ${MIN_PASSWORD_LENGTH} 個字元的密碼。`, "error");
-            toggleButtons(false);
-            return false;
-        }
-        return true;
-    }
-
-    // ★ 登入按鈕的核心邏輯
-    async function handleLogin() {
-      showMessage("");
-      toggleButtons(true);
-      const email = emailInput.value.trim();
-      const password = passwordInput.value.trim();
-
-      if (!email || !password) {
-        showMessage("請輸入 Email 和密碼", "error");
-        toggleButtons(false);
-        return;
-      }
-      
-      if (!validatePassword(password)) return; 
-      
-      showMessage("登入中...", "info");
-
-      // 1. 嘗試直接登入 (已註冊選登入)
-      let { data: loginData, error: loginError } = await supabaseClient.auth.signInWithPassword({
-        email,
-        password,
-      });
-      
-      if (loginError) {
-          console.error("【Supabase 登入失敗】", loginError);
-      }
-
-      if (loginData.user) {
-        // 登入成功
-        showMessage("登入成功！", "info");
-        await handlePostLoginRedirect(loginData.user);
-        return;
-      }
-      
-      // 2. 登入失敗後，檢查是否為後台設定問題
-      if (loginError) {
-          if (loginError.message && loginError.message.includes('Email not confirmed')) {
-              showMessage("⚠ 登入失敗：後台設定錯誤！請到 Supabase 後台關閉 'Confirm sign up'。", "error");
-              toggleButtons(false);
-              return;
-          }
-      }
-      
-      // 3. 嘗試註冊 (未註冊，選登入 -> 自動註冊)
-      let { data: signupData, error: signupError } = await supabaseClient.auth.signUp({
-        email,
-        password,
-      });
-
-      if (signupError) {
-          console.error("【Supabase 註冊失敗】", signupError);
-      }
-
-      if (signupData.user) {
-        // 註冊成功，且因為關閉了 Email 驗證，所以會自動登入
-        showMessage("已為您註冊並自動登入！", "info"); // 未註冊，選登入:已為您註冊且登入帳號
-        await handlePostLoginRedirect(signupData.user);
-        return;
-      }
-      
-      // 4. 註冊失敗 (錯誤碼 422: User already registered)
-      if (signupError && signupError.message.includes('User already registered')) {
-        // 結論：帳號存在，但密碼輸入錯誤
-        showMessage("已有帳號，請輸入正確密碼。", "error"); 
-        toggleButtons(false);
-        return;
-      }
-      
-      // 5. 最終錯誤處理
-      showMessage(loginError?.message || signupError?.message || "登入失敗，請再試一次。", "error");
-      toggleButtons(false);
-    }
-
-    // ★ 註冊按鈕的核心邏輯
-    async function handleSignUp() {
-      showMessage("");
-      toggleButtons(true);
-      const email = emailInput.value.trim();
-      const password = passwordInput.value.trim();
-
-      if (!email || !password) {
-        showMessage("請輸入 Email 和密碼", "error");
-        toggleButtons(false);
-        return;
-      }
-      
-      if (!validatePassword(password)) return; // 新增密碼長度檢查
-
-      showMessage("註冊中...", "info");
-
-      // 1. 嘗試直接註冊 (未註冊選註冊)
-      let { data: signupData, error: signupError } = await supabaseClient.auth.signUp({
-        email,
-        password,
-      });
-
-      if (signupError) {
-          console.error("【Supabase 註冊失敗】", signupError);
-      }
-      
-      if (signupData.user) {
-        // 註冊成功，自動登入 (因為關閉 Email 驗證)
-        showMessage("註冊成功，已自動幫你登入！", "info");
-        await handlePostLoginRedirect(signupData.user);
-        return;
-      }
-
-      // 2. 註冊失敗 (錯誤碼 422: User already registered)
-      if (signupError && signupError.message.includes('User already registered')) {
-        
-          // 嘗試登入 (信箱已註冊過，輸入密碼)
-          let { data: loginData, error: loginError } = await supabaseClient.auth.signInWithPassword({
-            email,
-            password,
-          });
-
-          if (loginData.user) {
-            // 登入成功
-            showMessage("登入成功！", "info"); // 信箱已註冊過，輸入正確密碼:登入成功
-            await handlePostLoginRedirect(loginData.user);
-            return;
-          } else {
-            // 密碼不正確或 'Email not confirmed'
-            if (loginError && loginError.message.includes('Email not confirmed')) {
-                showMessage("⚠ 登入失敗：後台設定錯誤！請到 Supabase 後台關閉 'Confirm sign up'。", "error");
-            } else {
-                showMessage("已有帳號，請輸入正確密碼。", "error"); 
-            }
-            toggleButtons(false);
-            return;
-          }
-      } else if (signupError) {
-          // 最終錯誤處理
-          if (signupError.message && signupError.message.includes('Email not confirmed')) {
-              showMessage("⚠ 註冊失敗：後台設定錯誤！請到 Supabase 後台關閉 'Confirm sign up'。", "error");
-          } else {
-              showMessage(signupError.message || "註冊失敗，請再試一次。", "error");
-          }
-      }
-      
-      toggleButtons(false);
-    }
-
-    document.getElementById("btn-login").addEventListener("click", handleLogin);
-    document.getElementById("btn-signup").addEventListener("click", handleSignUp);
-
-    // ✅ 檢查是否有登入 session，並自動導向
-    (async () => {
-      const { data } = await supabaseClient.auth.getSession();
-      if (data.session && data.session.user) {
-        showMessage("已偵測到登入狀態，自動導向中...", "info");
-        await handlePostLoginRedirect(data.session.user);
-      }
-    })();
-  </script>
 </body>
 </html>
+
 
 
 
